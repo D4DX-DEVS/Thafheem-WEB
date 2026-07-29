@@ -1,0 +1,22 @@
+import { surahNameUnicodes } from "../components/surahNameUnicodes";
+
+const SURAH_NAME_FONT = "SuraName, Amiri, serif";
+
+export const getCalligraphicSurahName = (surahId, fallbackName) => {
+  const numericId = parseInt(surahId, 10);
+  // Skip font glyph for surah 111 - font has Al-Masad but correct name is Al-Lahab
+  if (!Number.isNaN(numericId) && numericId !== 111) {
+    const unicodeValue = surahNameUnicodes[String(numericId)];
+    if (unicodeValue) {
+      const hex = unicodeValue.replace("U+", "");
+      const codePoint = parseInt(hex, 16);
+      if (!Number.isNaN(codePoint)) {
+        return String.fromCodePoint(codePoint);
+      }
+    }
+  }
+  return fallbackName;
+};
+
+export const surahNameFontFamily = SURAH_NAME_FONT;
+

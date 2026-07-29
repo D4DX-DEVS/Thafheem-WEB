@@ -1,0 +1,727 @@
+/* Google Fonts imports must come first */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Thin scrollbar that appears on hover (desktop) and stays visible on touch.
+   Used by the Popular Surahs row on the Home page. */
+.popular-scroll {
+  scrollbar-width: none; /* Firefox: hidden by default; revealed on hover below */
+  -ms-overflow-style: none;
+}
+.popular-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.popular-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.popular-scroll::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+/* Reveal the thumb when the row is hovered (pointer devices only). */
+@media (hover: hover) {
+  .popular-scroll:hover {
+    scrollbar-width: thin;
+    scrollbar-color: #62C3DC transparent;
+  }
+  .dark .popular-scroll:hover {
+    scrollbar-color: #67d3ef transparent;
+  }
+  .popular-scroll:hover::-webkit-scrollbar-thumb {
+    background-color: #62C3DC;
+  }
+  .dark .popular-scroll:hover::-webkit-scrollbar-thumb {
+    background-color: #67d3ef;
+  }
+  .popular-scroll:hover::-webkit-scrollbar-thumb:hover {
+    background-color: #3FA5C0;
+  }
+  .dark .popular-scroll:hover::-webkit-scrollbar-thumb:hover {
+    background-color: #8de2ff;
+  }
+}
+/* Touch devices (no hover): keep a thin always-visible scrollbar. */
+@media (hover: none) {
+  .popular-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #62C3DC transparent;
+  }
+  .dark .popular-scroll {
+    scrollbar-color: #67d3ef transparent;
+  }
+  .popular-scroll::-webkit-scrollbar-thumb {
+    background-color: #62C3DC;
+  }
+  .dark .popular-scroll::-webkit-scrollbar-thumb {
+    background-color: #67d3ef;
+  }
+}
+
+@theme {
+  /* Modern Islamic Palette */
+  --color-primary: #0891b2;
+  /* Cyan Blue */
+  --color-primary-light: #06b6d4;
+  /* Lighter Cyan Blue */
+  --color-primary-dark: #0e7490;
+  /* Darker Cyan Blue */
+
+  --color-accent: #D97706;
+  /* Amber/Gold */
+  --color-accent-light: #F59E0B;
+
+  --color-bg-light: #F8FAFC;
+  /* Slate 50 */
+  --color-bg-dark: #0F0F0F;
+  /* Neutral Dark */
+
+  --color-surface-light: #FFFFFF;
+  --color-surface-dark: #1A1A1A;
+  /* Neutral Dark Surface */
+
+  --color-text-primary-light: #1E293B;
+  --color-text-secondary-light: #64748B;
+
+  --color-text-primary-dark: #F1F5F9;
+  --color-text-secondary-dark: #A0A0A0;
+
+  /* Override gray palette — neutral dark (no blue tint) */
+  --color-gray-950: #0a0a0a;
+  --color-gray-900: #111111;
+  --color-gray-800: #1a1a1a;
+  --color-gray-700: #262626;
+  --color-gray-600: #3a3a3a;
+  --color-gray-500: #6b6b6b;
+  --color-gray-400: #9a9a9a;
+  --color-gray-300: #d4d4d4;
+  --color-gray-200: #e5e5e5;
+  --color-gray-100: #f3f3f3;
+  --color-gray-50:  #f9f9f9;
+
+  /* Shadows */
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  --shadow-glow: 0 0 15px rgba(6, 182, 212, 0.3);
+}
+
+/* Global Reset & Base Styles */
+html {
+  overflow-x: clip;
+  width: 100%;
+}
+
+body {
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: 'Outfit', 'Poppins', sans-serif;
+  background-color: var(--color-bg-light);
+  color: var(--color-text-primary-light);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: clip;
+  width: 100%;
+}
+
+.dark body {
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-primary-dark);
+}
+
+/* Arabic font support */
+.font-arabic {
+  font-family: 'Amiri', serif;
+  direction: rtl;
+}
+
+.font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(15, 15, 15, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-card);
+}
+
+.dark .glass-card {
+  background: rgba(15, 15, 15, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Tajweed word images in dark mode: invert white bg to black, hue-rotate restores tajweed colors */
+.dark .tajweed-verse img,
+.dark .tajweed-reading img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Custom styles for Juz cards */
+.juz-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.juz-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@font-face {
+  font-family: 'SuraName';
+  src: url('/public/fonts/sura_names.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Slider styles for Settings component */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 20;
+  transition: transform 0.1s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 20;
+}
+
+/* Radio button styles for Quiz component */
+input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-text-secondary-light);
+  border-radius: 50%;
+  background-color: transparent;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dark input[type="radio"] {
+  border-color: var(--color-text-secondary-dark);
+}
+
+input[type="radio"]:checked {
+  border-color: var(--color-primary);
+  background-color: transparent;
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Volume slider styles */
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Font Faces */
+@font-face {
+  font-family: 'ScheherazadeNew-Regular';
+  src: url('/fonts/ScheherazadeNew-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Sans Malayalam';
+  src: url('/fonts/NotoSansMalayalam-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0D00-U+0D7F, U+1CDA, U+200C-U+200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'JameelNoori';
+  src: url('/fonts/JameelNooriNastaleeq.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Noto Nastaliq Urdu - Variable Font */
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/Noto_Nastaliq_Urdu/NotoNastaliqUrdu-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+/* Noto Nastaliq Urdu - Static Fonts (fallbacks) */
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/Noto_Nastaliq_Urdu/static/NotoNastaliqUrdu-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/Noto_Nastaliq_Urdu/static/NotoNastaliqUrdu-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/Noto_Nastaliq_Urdu/static/NotoNastaliqUrdu-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/Noto_Nastaliq_Urdu/static/NotoNastaliqUrdu-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  src: url('/fonts/Noto_Sans_Bengali/NotoSansBengali-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Sans Tamil';
+  src: url('/fonts/Noto_Sans_Tamil/NotoSansTamil-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NotoSansDevanagari';
+  src: url('/fonts/NotoSansDevanagari-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NotoSans';
+  src: url('/fonts/NotoSans-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Language-specific font classes */
+.font-malayalam {
+  font-family: 'Noto Sans Malayalam', sans-serif;
+}
+
+.font-urdu {
+  font-family: 'JameelNoori', serif;
+  direction: rtl;
+}
+
+.font-urdu-nastaliq {
+  font-family: 'Noto Nastaliq Urdu', 'JameelNoori', serif;
+  direction: rtl;
+  line-height: 2.2;
+}
+
+.font-bengali {
+  font-family: 'Noto Sans Bengali', serif;
+}
+
+.font-tamil {
+  font-family: 'Noto Sans Tamil', serif;
+}
+
+.tamil-surah-intro {
+  font-family: 'Noto Sans Tamil', serif;
+  line-height: 2;
+}
+
+.tamil-surah-intro p,
+.tamil-surah-intro > div > div {
+  text-align: justify;
+  line-height: 2;
+}
+
+.font-hindi {
+  font-family: 'NotoSansDevanagari', serif;
+}
+
+.font-noto-sans {
+  font-family: 'NotoSans', sans-serif;
+}
+
+/* Interactive Elements */
+button,
+a,
+[role="button"],
+.cursor-pointer,
+.icon-button,
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:active,
+a:active {
+  transform: scale(0.98);
+}
+
+/* Accessibility: Focus indicators */
+*:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Minimum touch target size */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Icon button with proper touch target */
+.icon-btn {
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  /* More rounded */
+  transition: all 0.2s ease;
+  color: var(--color-text-secondary-light);
+}
+
+.dark .icon-btn {
+  color: var(--color-text-secondary-dark);
+}
+
+.icon-btn:hover {
+  background-color: rgba(6, 182, 212, 0.1);
+  /* Primary color tint */
+  color: var(--color-primary);
+}
+
+.dark .icon-btn:hover {
+  background-color: rgba(6, 182, 212, 0.2);
+  color: var(--color-primary-light);
+}
+
+/* Responsive utilities */
+@layer utilities {
+  .px-responsive {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .py-responsive {
+    @apply py-4 sm:py-6 lg:py-8;
+  }
+
+  .gap-responsive {
+    @apply gap-4 sm:gap-6;
+  }
+
+  .container-responsive {
+    @apply max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8;
+    width: 100%;
+    overflow-x: clip;
+  }
+}
+
+/* Responsive utilities */
+@layer utilities {
+  .px-responsive {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .py-responsive {
+    @apply py-4 sm:py-6 lg:py-8;
+  }
+
+  .gap-responsive {
+    @apply gap-4 sm:gap-6;
+  }
+
+  .container-responsive {
+    @apply max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8;
+    width: 100%;
+    overflow-x: clip;
+  }
+}
+
+/* Hindi Surah Intro HTML rendering */
+.hindi-surah-intro {
+  font-family: 'NotoSansDevanagari', serif;
+  text-align: justify;
+  text-justify: inter-word;
+}
+.hindi-surah-intro h1,
+.hindi-surah-intro h2,
+.hindi-surah-intro h3,
+.hindi-surah-intro h4,
+.hindi-surah-intro h5,
+.hindi-surah-intro h6 {
+  color: #06b6d4;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  text-align: start;
+}
+.hindi-surah-intro h1 { font-size: 1.2rem; }
+.hindi-surah-intro h2 { font-size: 1.1rem; }
+.hindi-surah-intro h3,
+.hindi-surah-intro h4 { font-size: 1rem; }
+.hindi-surah-intro p {
+  margin-bottom: 0.85rem;
+  line-height: 1.9;
+}
+.hindi-surah-intro a {
+  color: #0891b2;
+  text-decoration: underline;
+}
+.hindi-surah-intro ul,
+.hindi-surah-intro ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.85rem;
+  text-align: start;
+}
+.hindi-surah-intro li { margin-bottom: 0.25rem; }
+.hindi-surah-intro strong { font-weight: 600; }
+.hindi-surah-intro em { font-style: italic; }
+
+/* Subtitle rows in Hindi intro often arrive as bold-only blocks, not h-tags */
+.hindi-surah-intro p > strong:only-child,
+.hindi-surah-intro p > b:only-child,
+.hindi-surah-intro div > strong:only-child,
+.hindi-surah-intro div > b:only-child {
+  color: #06b6d4;
+}
+
+.dark .hindi-surah-intro h1,
+.dark .hindi-surah-intro h2,
+.dark .hindi-surah-intro h3,
+.dark .hindi-surah-intro h4,
+.dark .hindi-surah-intro h5,
+.dark .hindi-surah-intro h6 { color: #22d3ee; }
+
+.dark .hindi-surah-intro p > strong:only-child,
+.dark .hindi-surah-intro p > b:only-child,
+.dark .hindi-surah-intro div > strong:only-child,
+.dark .hindi-surah-intro div > b:only-child { color: #22d3ee; }
+
+.dark .hindi-surah-intro p,
+.dark .hindi-surah-intro li { color: #d1d5db; }
+.dark .hindi-surah-intro a { color: #22d3ee; }
+
+/* Urdu Surah Intro HTML rendering */
+.urdu-surah-intro {
+  font-family: 'Noto Nastaliq Urdu', 'JameelNoori', serif;
+  direction: rtl;
+  text-align: right;
+  font-size: 1rem;
+  line-height: 2.6;
+}
+.urdu-surah-intro * {
+  font-family: 'Noto Nastaliq Urdu', 'JameelNoori', serif !important;
+  direction: rtl;
+  text-align: right;
+}
+.urdu-surah-intro h1,
+.urdu-surah-intro h2,
+.urdu-surah-intro h3,
+.urdu-surah-intro h4 {
+  color: #06b6d4;
+  font-weight: 700;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 2;
+}
+.urdu-surah-intro h1 { font-size: 1.15rem; }
+.urdu-surah-intro h2 { font-size: 1.1rem; }
+.urdu-surah-intro h3,
+.urdu-surah-intro h4 { font-size: 1.05rem; }
+.urdu-surah-intro p {
+  margin-bottom: 0.85rem;
+  line-height: 2.6;
+  font-size: 1rem;
+}
+.urdu-surah-intro a {
+  color: #0891b2;
+  text-decoration: underline;
+}
+.urdu-surah-intro ul,
+.urdu-surah-intro ol {
+  padding-right: 1.5rem;
+  padding-left: 0;
+  margin-bottom: 0.85rem;
+}
+.urdu-surah-intro li {
+  margin-bottom: 0.25rem;
+  line-height: 2.6;
+}
+.urdu-surah-intro strong { font-weight: 700; }
+.urdu-surah-intro em { font-style: italic; }
+.dark .urdu-surah-intro h1,
+.dark .urdu-surah-intro h2,
+.dark .urdu-surah-intro h3,
+.dark .urdu-surah-intro h4 { color: #22d3ee; }
+.dark .urdu-surah-intro p,
+.dark .urdu-surah-intro li { color: #d1d5db; }
+.dark .urdu-surah-intro a { color: #22d3ee; }
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.2s ease-in forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-in forwards;
+}

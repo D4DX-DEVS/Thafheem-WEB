@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/src/assets/fav-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thafheem-ul-Quran</title>
+    <!-- Preconnect to audio CDN to save DNS+TLS time on first audio play -->
+    <link rel="preconnect" href="https://thafheem.net" crossorigin />
+    <link rel="dns-prefetch" href="https://thafheem.net" />
+    <!-- Preload Malayalam font so it is available before search results render -->
+    <link rel="preload" href="/fonts/NotoSansMalayalam-VariableFont_wdth,wght.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+    <!-- SQL.js for Tamil translation database -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

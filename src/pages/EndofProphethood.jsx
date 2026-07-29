@@ -1,0 +1,59 @@
+import React, { useState, useEffect } from "react";
+import EndofProphethoodNavbar from "../components/EndofProphethoodNavbar";
+import EndofProphethoodContent from "../components/EndofProphethoodContent";
+import EndofProphethoodPlay from "../components/EndofProphethoodPlay";
+
+const EndofProphethood = () => {
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+  const [activeSection, setActiveSection] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  const handlePlayAudio = () => {
+    setShowAudioPlayer(prev => !prev);
+  };
+
+  const handleCloseAudio = () => {
+    setShowAudioPlayer(false);
+  };
+
+  const shouldShowAudioPlayer = !isMobile || showAudioPlayer;
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-gray-900 font-poppins">
+      <div className="flex flex-col lg:flex-row">
+        <EndofProphethoodNavbar
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+        <EndofProphethoodContent
+          onPlayAudio={handlePlayAudio}
+          activeSection={activeSection}
+          showPlayButton={true}
+        />
+      </div>
+
+      {shouldShowAudioPlayer && (
+        <EndofProphethoodPlay
+          audioSrc={activeSection?.audiourl || ""}
+          title={activeSection?.title || ""}
+          onClose={handleCloseAudio}
+          autoPlay={false}
+          isMobile={isMobile}
+        />
+      )}
+    </div>
+  );
+};
+
+export default EndofProphethood;

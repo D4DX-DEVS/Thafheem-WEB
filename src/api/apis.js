@@ -1,0 +1,96 @@
+// Environment-based API configuration
+// Use PROD for more reliable production detection
+const isDevelopment = import.meta.env.DEV && !import.meta.env.PROD;
+
+import { 
+  API_BASE_URL as CONFIG_API_BASE_URL,
+  API_BASE_PATH as CONFIG_API_BASE_PATH
+} from '../config/apiConfig.js';
+
+const normalizeBaseUrl = (value, { allowTrailingSlash = false } = {}) => {
+  if (!value) return value;
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+  if (allowTrailingSlash) {
+    return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+  }
+  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+};
+
+export const API_BASE_URL = CONFIG_API_BASE_URL;
+export const API_BASE_PATH = CONFIG_API_BASE_PATH;
+
+export const DIRECTUS_BASE_URL = isDevelopment ? '/api/directus' : 'https://directus.d4dx.co';
+
+const legacyEnvBase = normalizeBaseUrl(import.meta.env.VITE_LEGACY_TFH_BASE_URL);
+// Use proxy path in development to avoid CORS issues, direct URL in production
+const DEFAULT_LEGACY_BASE = isDevelopment ? '/api/thafheem' : 'https://thafheem.net/thafheem-api';
+const REMOTE_LEGACY_BASE = 'https://thafheem.net/thafheem-api';
+
+// Legacy Thafheem public API (Malayalam + blockwise + pageranges)
+export const LEGACY_TFH_BASE = legacyEnvBase || DEFAULT_LEGACY_BASE;
+export const LEGACY_TFH_REMOTE_BASE = REMOTE_LEGACY_BASE;
+
+// Legacy endpoints - use LEGACY_TFH_BASE (thafheem.net/thafheem-api)
+export const AYA_TRANSLATION_API = `${LEGACY_TFH_BASE}/ayatransl`;
+// New MySQL backend endpoint for surah names
+export const SURA_NAMES_API = `${API_BASE_PATH}/suranames/all`;
+// New MySQL backend endpoint for surah names by language
+export const getSurahNamesByLanguageAPI = (language) => `${API_BASE_PATH}/suranames/${language}`;
+export const getSujudAyahsAPI = (language) => `${API_BASE_PATH}/sujud-ayahs/${language}`;
+// New MySQL backend endpoint for page ranges
+export const PAGE_RANGES_API = `${API_BASE_PATH}/pageranges`;
+export const AYAH_AUDIO_TRANSLATION_API = `${LEGACY_TFH_BASE}/ayaaudiotransl`;
+// AYA_RANGES_API - Removed: Now using new API at ${API_BASE_PATH}/{language}/ayaranges/{surahId}
+export const QURAN_TEXT_API = `${LEGACY_TFH_BASE}/qurantext`;
+export const INTERPRETATION_API = `${LEGACY_TFH_BASE}/interpret`;
+export const QUIZ_API = `${LEGACY_TFH_BASE}/quizquests`; // legacy — kept for backward compat
+// MySQL-backed quiz endpoints (local Express backend)
+export const QUIZ_PAGINATED_API  = `${API_BASE_PATH}/quiz`;
+export const QUIZ_TAFHEEM_API    = `${API_BASE_PATH}/quiz/tafheem`;
+export const QUIZ_BLOCK_API      = `${API_BASE_PATH}/quiz/block`;
+export const NOTES_API = `${LEGACY_TFH_BASE}/notes`;
+// Add this new endpoint for block-wise translations
+export const AYAH_TRANSLATION_API = `${LEGACY_TFH_BASE}/ayatransl`;
+// Directus CMS API endpoints
+export const DIRECTUS_HOME_BANNER_API = `${DIRECTUS_BASE_URL}/items/thafheem_homebanner`;
+export const DIRECTUS_APP_SETTINGS_API = `${DIRECTUS_BASE_URL}/items/thafheem_app_settings`;
+export const DIRECTUS_AI_API_CONFIG = `${DIRECTUS_BASE_URL}/items/thafheem_ai_api`;
+// Add this to your existing apis.js file
+export const TAJWEED_RULES_API = `${API_BASE_PATH}/thajweedrules`;
+// Tajweed glyph words — QCF V4 color-coded words per ayah
+// Single ayah:  getTajweedWordsAPI(2, 41)
+// Ayah range:   getTajweedWordsAPI(2, null, 1, 20)   → ?from=1&to=20
+export const getTajweedWordsAPI = (suraid, ayaid, from, to) => {
+  if (ayaid != null) return `${API_BASE_PATH}/tajweed/${suraid}/${ayaid}`;
+  if (from != null && to != null) return `${API_BASE_PATH}/tajweed/${suraid}?from=${from}&to=${to}`;
+  return `${API_BASE_PATH}/tajweed/${suraid}`;
+};
+// Tajweed glyphs grouped into Mushaf lines (true printed-page layout).
+// Range:  getTajweedLinesAPI(1, 1, 7)  → ?from=1&to=7
+export const getTajweedLinesAPI = (suraid, from, to) => {
+  if (from != null && to != null) return `${API_BASE_PATH}/tajweed/lines/${suraid}?from=${from}&to=${to}`;
+  return `${API_BASE_PATH}/tajweed/lines/${suraid}`;
+};
+// QCF V4 Tajweed page-specific fonts (colors embedded in glyphs).
+// Served through our API origin (/fonts/tajweed/p{N}.woff2) which proxies the
+// DigitalOcean Spaces CDN and adds the CORS headers @font-face requires.
+export const TAJWEED_FONT_CDN_BASE =
+  import.meta.env.VITE_TAJWEED_FONT_CDN_BASE ||
+  `${API_BASE_URL}/fonts/tajweed`;
+export const getTajweedFontUrl = (page) => `${TAJWEED_FONT_CDN_BASE}/p${page}.woff2`;
+// WORD_MEANINGS_API - Removed: Now using new API at ${API_BASE_PATH}/{language}/word-by-word/{surahId}/{verseId}
+export const MALARTICLES_API = isDevelopment ? '/api/old-thaf-api/malarticles' : "https://old.thafheem.net/thaf-api/malarticles";
+export const ENGARTICLES_API = isDevelopment ? '/api/old-thaf-api/engarticles' : "https://old.thafheem.net/thaf-api/engarticles";
+export const ARTICLES_API = isDevelopment ? '/api/old-thaf-api/articles' : "https://old.thafheem.net/thaf-api/articles";
+// Use proxy path in development to avoid CORS, direct URL in production
+// Production must use: https://old.thafheem.net/thaf-api/quranaya
+// This is different from blockwise interpretation which uses a different endpoint
+// Force direct URL in production to avoid proxy/rewrite issues
+export const MALAYALAM_QURANAYA_API = import.meta.env.PROD
+  ? 'https://old.thafheem.net/thaf-api/quranaya'
+  : '/api/old-thaf-api/quranaya';
+
+// Feedback & Feature Request endpoints
+export const FEEDBACK_API = `${API_BASE_PATH}/feedback`;
+export const FEATURE_REQUEST_API = `${API_BASE_PATH}/feature-request`;

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Open book pages -->
+  <path d="M256 140 C220 110 150 100 80 115 L55 135 L55 310 L80 295 C150 280 220 290 256 320 C292 290 362 280 432 295 L457 310 L457 135 L432 115 C362 100 292 110 256 140 Z" stroke="currentColor" stroke-width="22" stroke-linejoin="round" fill="white"/>
+  <!-- Book spine -->
+  <line x1="256" y1="140" x2="256" y2="320" stroke="currentColor" stroke-width="18" stroke-linecap="round"/>
+  <!-- Left page lines -->
+  <line x1="100" y1="170" x2="235" y2="165" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+  <line x1="95" y1="205" x2="232" y2="200" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+  <line x1="93" y1="240" x2="232" y2="237" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+  <!-- Right page lines -->
+  <line x1="277" y1="165" x2="412" y2="170" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+  <line x1="280" y1="200" x2="417" y2="205" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+  <line x1="280" y1="237" x2="419" y2="240" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+  <!-- Stand left arm (top-left to bottom-right) -->
+  <path d="M95 300 L55 340 L55 390 L100 415 L270 340 L256 320 Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round" fill="white"/>
+  <!-- Stand right arm (top-right to bottom-left) -->
+  <path d="M417 300 L457 340 L457 390 L412 415 L242 340 L256 320 Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round" fill="white"/>
+  <!-- Stand cross overlap left -->
+  <path d="M200 345 L256 320 L312 345 L256 370 Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round" fill="white"/>
+</svg>
