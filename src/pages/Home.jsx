@@ -125,21 +125,22 @@ const Home = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 py-4 sm:py-6">
             {loading ? (
               // Loading skeleton
-              Array.from({ length: 6 }).map((_, index) => (
+              Array.from({ length: 9 }).map((_, index) => (
                 <div
                   key={index}
-                  className="w-full max-w-[421px] sm:max-w-full h-auto sm:h-[81px] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+                  className="w-full max-w-[421px] sm:max-w-full h-auto sm:h-[81px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700
                        rounded-xl px-4 py-3 sm:py-0 mx-auto flex items-center animate-pulse"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full shrink-0"></div>
                     <div className="flex flex-col justify-center min-w-0 flex-1">
-                      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-2"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                     </div>
                   </div>
-                  <div className="ml-auto">
-                    <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+                  <div className="ml-auto flex flex-col items-end gap-2">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-14"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-10"></div>
                   </div>
                 </div>
               ))

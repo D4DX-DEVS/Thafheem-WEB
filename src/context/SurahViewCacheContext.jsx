@@ -67,12 +67,48 @@ const removeFromCache = (cacheMap, key) => {
   cacheMap.delete(key);
 };
 
+// ponytail: whole-map JSON blobs in sessionStorage, per-entry storage if payloads outgrow quota
+const STORAGE_PREFIX = 'surahViewCache:';
+const persistTimers = {};
+
+const loadPersisted = (storageKey) => {
+  const map = new Map();
+  try {
+    const raw = sessionStorage.getItem(STORAGE_PREFIX + storageKey);
+    if (!raw) return map;
+    Object.entries(JSON.parse(raw)).forEach(([key, entry]) => {
+      if (entry?.timestamp && Date.now() - entry.timestamp <= CACHE_TTL) {
+        map.set(key, entry);
+      }
+    });
+  } catch {
+    // corrupt or unavailable storage — start with empty memory cache
+  }
+  return map;
+};
+
+const schedulePersist = (storageKey, cacheMap) => {
+  clearTimeout(persistTimers[storageKey]);
+  persistTimers[storageKey] = setTimeout(() => {
+    try {
+      sessionStorage.setItem(
+        STORAGE_PREFIX + storageKey,
+        JSON.stringify(Object.fromEntries(cacheMap))
+      );
+    } catch {
+      // quota exceeded — memory cache still works, just no refresh survival
+    }
+  }, 500);
+};
+
 export const SurahViewCacheProvider = ({ children }) => {
-  const ayahCacheRef = useRef(new Map());
-  const blockCacheRef = useRef(new Map());
+  const ayahCacheRef = useRef(null);
+  const blockCacheRef = useRef(null);
+  if (ayahCacheRef.current === null) ayahCacheRef.current = loadPersisted('ayah');
+  if (blockCacheRef.current === null) blockCacheRef.current = loadPersisted('block');
 
   const value = useMemo(() => {
-    const buildCacheHelpers = (cacheRef) => ({
+    const buildCacheHelpers = (cacheRef, storageKey) => ({
       get: (surahId, language) => {
         if (!surahId) return null;
         const key = normalizeKey(surahId, language);
@@ -89,19 +125,22 @@ export const SurahViewCacheProvider = ({ children }) => {
             surahId: String(surahId ?? '').trim(),
           },
         });
+        schedulePersist(storageKey, cacheRef.current);
       },
       clear: (surahId, language) => {
         if (!surahId) return;
         const key = normalizeKey(surahId, language);
         removeFromCache(cacheRef.current, key);
+        schedulePersist(storageKey, cacheRef.current);
       },
       clearAll: () => {
         cacheRef.current.clear();
+        schedulePersist(storageKey, cacheRef.current);
       },
     });
 
-    const ayahHelpers = buildCacheHelpers(ayahCacheRef);
-    const blockHelpers = buildCacheHelpers(blockCacheRef);
+    const ayahHelpers = buildCacheHelpers(ayahCacheRef, 'ayah');
+    const blockHelpers = buildCacheHelpers(blockCacheRef, 'block');
 
     return {
       getAyahViewCache: ayahHelpers.get,

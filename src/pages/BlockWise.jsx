@@ -1408,6 +1408,16 @@ const BlockWise = () => {
     window.dispatchEvent(new CustomEvent('audioStateChange', { detail: { isPlaying } }));
   }, [isContinuousPlay, isPaused, playingBlock]);
 
+  // Auto-scroll to current block when playing (same as ayah-wise)
+  useEffect(() => {
+    if (playingBlock !== null && !isPaused) {
+      const el = document.querySelector(`[data-block-id="${CSS.escape(String(playingBlock))}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [playingBlock, isPaused]);
+
   // Listen for toast events from Transition component
   useEffect(() => {
     const handleToastEvent = (event) => {
@@ -1571,9 +1581,15 @@ const BlockWise = () => {
         ? Object.keys(cached.blockTranslations).length
         : 0;
       const hasCompleteData = Boolean(cached.__meta?.isComplete && cachedTranslationCount > 0);
+      const hasVisibleContent =
+        Array.isArray(cached.blockRanges) &&
+        cached.blockRanges.length > 0 &&
+        cachedTranslationCount > 0;
 
-      setLoading(!hasCompleteData);
+      // Partial cache: show cached blocks immediately, refetch fills the rest silently
+      setLoading(!hasVisibleContent);
       hasFetchedRef.current = hasCompleteData;
+      hydratedBlockCacheRef.current = hasVisibleContent;
     }
   }, [surahId, translationLanguage, getBlockViewCache]);
 
@@ -1594,7 +1610,10 @@ const BlockWise = () => {
       hasFetchedRef.current = true;
 
       try {
-        setLoading(true);
+        // Keep cached content visible during background refill — skeleton only when nothing to show
+        if (!hydratedBlockCacheRef.current) {
+          setLoading(true);
+        }
         setError(null);
 
         // Step 1: Fetch aya ranges and Arabic verses in parallel (allSettled so one failure doesn't block the other)
@@ -2912,11 +2931,18 @@ const BlockWise = () => {
                   ? arabicVerses.slice(start - 1, end)
                   : [];
 
+                const isBlockPlaying = playingBlock === blockId;
+
                 return (
                   <div
                     id={`block-${start}-${end}`}
                     key={`block-${blockId}-${start}-${end}`}
-                    className="relative group rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-card hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-300 overflow-x-hidden w-full"
+                    data-block-id={blockId}
+                    className={`relative group rounded-2xl transition-all duration-300 overflow-x-hidden w-full ${
+                      isBlockPlaying
+                        ? 'bg-teal-50/50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-800 shadow-md ring-1 ring-teal-100 dark:ring-teal-900'
+                        : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-card hover:border-gray-200 dark:hover:border-gray-600'
+                    }`}
                   >
                     {/* Block Range Badge */}
                     <div className="absolute top-0 left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-1.5 border-b border-r border-gray-100 dark:border-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400 z-10" style={{ borderRadius: '16px 0' }}>

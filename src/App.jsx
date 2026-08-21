@@ -80,6 +80,15 @@ function resolveRouterBasename() {
   return raw.endsWith('/') ? raw.slice(0, -1) : raw;
 }
 
+// Reset scroll on route change — router keeps old scroll position otherwise
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 // Keep ?lang= in URL on every route change
 function LanguageUrlSync() {
   const location = useLocation();
@@ -103,6 +112,7 @@ function App() {
       <AuthProvider>
         <SurahViewCacheProvider>
           <Router basename={basename}>
+          <ScrollToTop />
           <LanguageUrlSync />
           <AnalyticsProvider>
           {/* Skip to main content link for accessibility */}
