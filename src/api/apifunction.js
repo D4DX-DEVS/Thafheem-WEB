@@ -1168,6 +1168,7 @@ export const fetchSurahs = async (options = {}) => {
         name: "Al-Falaq",
         ayahs: 5,
         type: "Makki",
+ */
 // Helper function to map language code to API language parameter
 const mapLanguageToAPIForList = (languageCode) => {
   const langMap = {

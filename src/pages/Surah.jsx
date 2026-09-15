@@ -2572,7 +2572,6 @@ Read more: ${shareUrl}`;
           const tamilTranslations = Array.isArray(tamilResult?.translations) ? tamilResult.translations : [];
           if (tamilTranslations.length > 0) {
             setAyahData(tamilTranslations);
-            setTamilPagination(tamilResult?.pagination || null);
           } else {
             const fallbackAyahData = Array.from({ length: verseCount }, (_, index) => ({
               number: index + 1,
@@ -2580,7 +2579,6 @@ Read more: ${shareUrl}`;
               Translation: `Tamil translation not available for verse ${index + 1}`,
             }));
             setAyahData(fallbackAyahData);
-            setTamilPagination(null);
           }
 
           try {
@@ -2590,7 +2588,8 @@ Read more: ${shareUrl}`;
               : Array.isArray(arabicResult) ? arabicResult : [];
             setArabicVerses(normalizedArabic);
           } catch (arabicError) {
-            if (!isMounted) return;
+            // No mounted-guard here: this runs from the Tamil download handler,
+            // not from an effect that defines a cleanup flag.
             if (arabicError.name !== 'AbortError') console.error('Error fetching Arabic verses:', arabicError);
             setArabicVerses([]);
           }

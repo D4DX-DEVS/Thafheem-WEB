@@ -186,7 +186,7 @@ const Settings = ({ onClose }) => {
     setContextViewType("Ayah Wise");
     setTajweedEnabled(false);
     setContextTajweedEnabled(false);
-    setQuranAudio(true);
+    setContextAudioTypes(['quran']); // reset audio selection to the Quran-only default
     setPlaybackSpeed(1.0);
     localStorage.setItem("playbackSpeed", "1.0");
     setReciter("al-afasy");

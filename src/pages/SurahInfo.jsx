@@ -1,6 +1,6 @@
 import { ArrowLeft, Share2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { fetchCompleteSurahInfo, fetchNoteById } from "../api/apifunction";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -150,19 +150,19 @@ const SurahInfo = () => {
     );
   }
 
-  // Parse Thafheem content into sections if available
-  const getPrefaceParagraphs = useMemo(
-    () => (htmlString) => {
-      if (!htmlString) return [];
-      return htmlString
-        .replace(/\r\n/g, "\n")
-        .replace(/\t+/g, " ")
-        .split(/\n{2,}/)
-        .map((paragraph) => paragraph.trim())
-        .filter(Boolean);
-    },
-    []
-  );
+  // Parse Thafheem content into sections if available.
+  // Plain functions, not useMemo/useCallback: this code sits after the
+  // loading/error early returns, so hooks here would run conditionally
+  // and break React's hook order.
+  const getPrefaceParagraphs = (htmlString) => {
+    if (!htmlString) return [];
+    return htmlString
+      .replace(/\r\n/g, "\n")
+      .replace(/\t+/g, " ")
+      .split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+  };
 
   const parsedThafheemSections = surahInfo?.thafheem?.PrefaceText 
     ? parseContentSections(surahInfo.thafheem.PrefaceText)
@@ -208,7 +208,7 @@ const SurahInfo = () => {
   const shouldShowBanglaIntroOnly =
     (translationLanguage === "bn" || translationLanguage === "bangla") && banglaIntroSections.length > 0;
 
-  const getAllContentAsText = useCallback(() => {
+  const getAllContentAsText = () => {
     if (!surahInfo) return "";
 
     const surahName =
@@ -289,7 +289,7 @@ const SurahInfo = () => {
 
     content += `\n— ${surahName} (Surah ${surahId})`;
     return content;
-  }, [surahId, surahInfo, parsedThafheemSections]);
+  };
 
   const handlePrefaceContentClick = (event) => {
     if (translationLanguage !== "mal") {

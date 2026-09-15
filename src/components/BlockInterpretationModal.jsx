@@ -1027,19 +1027,8 @@ const BlockInterpretationModal = ({
       return;
     }
 
-    // Legacy fallback: text-based detection (only for non-Malayalam)
-    if (currentLanguage !== 'mal') {
-      const clickedText = target.innerText || target.textContent || "";
-
-      // Look for verse patterns — open VerseReferenceModal (Arabic + Translation)
-      const verseMatch = clickedText.match(/\(?(\d+)\s*[:：]\s*(\d+)\)?/);
-      if (verseMatch) {
-        const [, s, v] = verseMatch;
-        setVerseRefTarget({ surahId: parseInt(s, 10), ayah: parseInt(v, 10) });
-        setShowVerseRefModal(true);
-        return;
-      }
-    }
+    // Legacy fallback: text-based detection
+    const clickedText = target.innerText || target.textContent || "";
 
     // Look for Malayalam verse patterns first
     const malayalamMatch =

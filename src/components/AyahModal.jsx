@@ -50,7 +50,7 @@ const AyahModal = ({ surahId, verseId, onClose }) => {
     adjustedTranslationFontSize,
     translationLanguage,
   } = useTheme();
-  const { toasts, removeToast } = useToast();
+  const { toasts, removeToast, showWarning, showError } = useToast();
   const navigate = useNavigate();
 
   const [activeSurahId, setActiveSurahId] = useState(() => {
@@ -719,19 +719,20 @@ const AyahModal = ({ surahId, verseId, onClose }) => {
             if (explanation && explanation.trim() !== '' && explanation !== 'Explanation not available') {
               // Decode HTML entities to ensure links render properly
               const decodedExplanation = decodeHTML(explanation);
+              // Populating interpretationData is what renders the interpretation;
+              // there is no separate "show interpretation" state on this modal.
               setInterpretationData([{
                 interpretation: decodedExplanation,
                 AudioIntrerptn: decodedExplanation,
                 text: decodedExplanation,
                 content: decodedExplanation
               }]);
-              setShowInterpretationModal(true);
             } else {
-              showToast('Footnote explanation not available', 'warning');
+              showWarning('Footnote explanation not available');
             }
           } catch (error) {
             console.error('Error fetching Urdu footnote:', error);
-            showToast('Failed to load footnote explanation', 'error');
+            showError('Failed to load footnote explanation');
           }
         }
       }
