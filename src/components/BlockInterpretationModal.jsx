@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import {
   fetchInterpretationRange,
@@ -34,6 +35,7 @@ const BlockInterpretationModal = ({
   blockRanges = [],
 }) => {
   const { user } = useAuth?.() || { user: null };
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [content, setContent] = useState([]);
@@ -1607,9 +1609,18 @@ const BlockInterpretationModal = ({
   };
 
   const handleBookmark = async () => {
+    // Bookmarks are tied to a real account: the API identifies the owner from
+    // the signed-in user's token, so there is nothing to attach this to when
+    // signed out.
+    if (!user) {
+      alert("Please sign in to bookmark interpretations");
+      navigate("/sign");
+      return;
+    }
+
     try {
       setIsBookmarking(true);
-      const userId = BookmarkService.getEffectiveUserId(user);
+      const userId = user.uid;
 
       // Use the new block interpretation bookmark method
       await BookmarkService.addBlockInterpretationBookmark(

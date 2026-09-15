@@ -66,9 +66,17 @@ const WordNavbar = ({
 
   // Handle bookmark functionality
   const handleBookmark = async () => {
+    // Bookmarks belong to an account; the API takes the owner from the signed-in
+    // user's token, so there is nothing to attach this to when signed out.
+    if (!user) {
+      if (showError) showError("Please sign in to bookmark");
+      navigate("/sign");
+      return;
+    }
+
     try {
       setIsBookmarking(true);
-      const userId = BookmarkService.getEffectiveUserId(user);
+      const userId = user.uid;
       const activeLang = translationLanguage || 'en';
       // Fetch localized surah name for the bookmarked language
       let surahName = surahInfo?.name || `Surah ${surahId}`;
