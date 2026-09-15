@@ -1168,6 +1168,7 @@ export const fetchSurahs = async (options = {}) => {
         name: "Al-Falaq",
         ayahs: 5,
         type: "Makki",
+ */
 // Helper function to map language code to API language parameter
 const mapLanguageToAPIForList = (languageCode) => {
   const langMap = {
@@ -2372,7 +2373,7 @@ export const fetchWordByWordMeaning = async (
     
     // Transform to match expected format
     // API returns words with fields like: WordPhrase, WordMeaning, MalMeaning, EngMeaning, etc.
-    return {
+    const transformed = {
       verse_key: `${surahId}:${verseId}`,
       words: data.words?.map((word, index) => {
         // Get meaning based on language
@@ -2400,6 +2401,22 @@ export const fetchWordByWordMeaning = async (
         };
       }) || []
     };
+
+    // Server-side aligned segments: each segment carries the exact Uthmani
+    // display text plus the WordId it belongs to — frontend renders these
+    // positionally with no fuzzy matching. Falls back to `words` when absent.
+    if (data.aligned && Array.isArray(data.segments) && data.segments.length > 0) {
+      const byId = new Map(transformed.words.map(w => [w.id, w]));
+      const segments = data.segments
+        .map(s => ({ text: s.displayText || '', word: byId.get(s.WordId) }))
+        .filter(s => s.text && s.word);
+      if (segments.length === data.segments.length) {
+        transformed.aligned = true;
+        transformed.segments = segments;
+      }
+    }
+
+    return transformed;
   } catch (error) {
     console.error("Error fetching word-by-word meaning from MySQL API:", error);
     throw error;

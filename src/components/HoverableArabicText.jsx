@@ -70,6 +70,12 @@ const HoverableArabicText = ({
 
   // Split Arabic text into words (by spaces, but preserve Arabic word boundaries)
   const words = useMemo(() => {
+    // Server-aligned segments take priority for every font: exact Uthmani
+    // display text, positionally paired with meanings — no text swap needed
+    if (wordData?.aligned && wordData.segments?.length > 0) {
+      return wordData.segments.map(s => s.text);
+    }
+
     // When using a standard Arabic font, render words directly from API WordPhrase
     // This guarantees 100% match since display word === API word
     if (useApiWords && wordData?.words?.length > 0) {
@@ -85,7 +91,7 @@ const HoverableArabicText = ({
     }
 
     if (!arabicText) return [];
-    
+
     // Split by spaces, but keep Arabic word boundaries intact
     // Remove verse markers and clean up
     const cleaned = arabicText
@@ -196,6 +202,17 @@ const HoverableArabicText = ({
     const normalizedWord = wordText.trim();
     if (!normalizedWord) return null;
 
+    // Server-aligned fast path: words[] was built from wordData.segments, so
+    // display index === segment index — direct positional lookup, any font
+    if (wordData.aligned && wordData.segments?.length > 0) {
+      const seg = wordData.segments[wordIndex];
+      if (seg?.word?.translation?.text) {
+        const originalIndex = wordData.words.indexOf(seg.word);
+        return { word: seg.word, index: originalIndex >= 0 ? originalIndex : wordIndex };
+      }
+      return null;
+    }
+
     // Fast path for Scheherazade mode: words come directly from API WordPhrase
     // so we can match by position — display words are built from wordData.words
     // with empty-meaning entries filtered out
@@ -215,7 +232,7 @@ const HoverableArabicText = ({
       }
       return null;
     }
-    
+
     // Helper to normalize Arabic text (remove diacritics, zero-width characters, and normalize Alef variations)
     const normalize = (text) => {
       if (!text) return '';

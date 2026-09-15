@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import logoWhite from "../assets/logo-white.png";
@@ -107,11 +107,39 @@ const stripHtml = (html) => {
     .trim();
 };
 
+// Build a regex pattern for the query. For Arabic queries, ignore harakat /
+// quranic marks / tatweel and treat alef variants as equivalent, so a
+// fully-voweled query still highlights inside Uthmani or plain script text.
+const AR_MARKS = '[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED\\u0640]';
+const buildQueryPattern = (query) => {
+  if (!/[؀-ۿ]/.test(query)) {
+    return query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  // Drop alefs from the query and allow optional alefs between letters instead:
+  // Uthmani script writes dagger alef where plain script has a full alef.
+  const stripped = query
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
+    .replace(/[\u0622\u0623\u0625\u0627\u0671]/g, '');
+  const gap = `(?:${AR_MARKS}|[\\u0622\\u0623\\u0625\\u0627\\u0671])*`;
+  return [...stripped]
+    .map((ch) => {
+      if (ch === 'ي' || ch === 'ى') return '[\\u064A\\u0649]';
+      if (/\s/.test(ch)) return '\\s*';
+      return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    })
+    .join(gap);
+};
+
 // Highlight matching query text inside a string — returns array of React nodes
 const highlightText = (text, query) => {
   if (!text || !query) return text;
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  const escaped = buildQueryPattern(query);
+  let parts;
+  try {
+    parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  } catch {
+    return text;
+  }
   if (parts.length === 1) return text;
   return parts.map((part, i) =>
     new RegExp(escaped, 'i').test(part)
@@ -438,7 +466,7 @@ const HomepageSearch = () => {
           ayah: ayah,
           displayText: stripHtml(item.matchedText || ''),
           translationText: stripHtml(item.translationText || ''),
-          subText: `${wordSearchResult.language}${sourceLabel} • Surah ${surah}:${ayah}`,
+          subText: `Surah ${surah}:${ayah}${sourceLabel}`,
           arabicWord: item.arabicWord || '',
           matchedText: stripHtml(item.matchedText || ''),
           sourceType: sourceType || undefined
@@ -460,7 +488,7 @@ const HomepageSearch = () => {
             surah: parseInt(surah) || 0,
             ayah: parseInt(ayah) || 0,
             displayText: text,
-            subText: `arabic • Surah ${surah}:${ayah}`,
+            subText: `Surah ${surah}:${ayah}`,
             matchedText: sanitizedQuery
           };
         }).filter(result => result.surah > 0 && result.ayah > 0); // Filter out invalid results
@@ -1190,7 +1218,22 @@ const HomepageSearch = () => {
               {!isSearching && searchResults.length > 0 && (
                 <div className="space-y-3">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                    Found {searchResults.filter(r => r.type === 'surah').length} surahs, {searchResults.filter(r => r.type === 'verse' || r.type === 'verse_reference').length} verses, {searchResults.filter(r => r.type === 'word_search').length} word matches
+                    {(() => {
+                      const surahCount = searchResults.filter(r => r.type === 'surah').length;
+                      // Arabic word_search hits are whole-verse matches — count them as verses
+                      const verseCount = searchResults.filter(r => r.type === 'verse' || r.type === 'verse_reference' || (r.type === 'word_search' && r.language === 'arabic')).length;
+                      const wordCount = searchResults.filter(r => r.type === 'word_search' && r.language !== 'arabic').length;
+                      const subjectCount = searchResults.filter(r => r.type === 'subject_quran' || r.type === 'subject_tafseer').length;
+                      const rootCount = searchResults.filter(r => r.type === 'root_word').length;
+                      const bits = [
+                        `${surahCount} surahs`,
+                        `${verseCount} verses`,
+                        `${wordCount} word matches`,
+                        ...(subjectCount ? [`${subjectCount} subjects`] : []),
+                        ...(rootCount ? [`${rootCount} root words`] : []),
+                      ];
+                      return `Found ${bits.join(', ')}`;
+                    })()}
                   </div>
                   {searchResults.map((result, index) => {
                     const cardKey = `${result.type}-${index}-${result.surah || result.data?.number || index}`;
