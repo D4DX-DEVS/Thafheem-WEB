@@ -71,6 +71,7 @@ const HomepageNavbar = () => {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [navbarHeight, setNavbarHeight] = useState(0);
@@ -128,6 +129,7 @@ const HomepageNavbar = () => {
     try {
       setIsSigningOut(true);
       await signOut(auth);
+      setIsSignOutConfirmOpen(false);
       navigate("/"); // Redirect to home page after successful logout
     } catch (error) {
       console.error("Error signing out:", error);
@@ -151,9 +153,19 @@ const HomepageNavbar = () => {
     }
   }, [translationLanguage, location.pathname, navigate]);
 
+  // Close the sign out confirmation with Escape
+  useEffect(() => {
+    if (!isSignOutConfirmOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape" && !isSigningOut) setIsSignOutConfirmOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isSignOutConfirmOpen, isSigningOut]);
+
   const handleAuthButtonClick = () => {
     if (user) {
-      handleSignOut();
+      setIsSignOutConfirmOpen(true);
     } else {
       navigate("/sign");
     }
@@ -1092,6 +1104,58 @@ const HomepageNavbar = () => {
                 );
               })}
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sign Out Confirmation Modal - intentionally English only (no i18n) */}
+      {isSignOutConfirmOpen && (
+        <div
+          className="fixed inset-0 bg-gray-500/70 flex items-center justify-center z-[200] p-4 font-poppins"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="signout-confirm-title"
+          dir="ltr"
+          onClick={() => {
+            if (!isSigningOut) setIsSignOutConfirmOpen(false);
+          }}
+        >
+          <div
+            className="bg-white dark:bg-[#1C1C1E] rounded-lg shadow-xl p-6 w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="signout-confirm-title"
+              className="text-xl font-semibold text-gray-900 dark:text-white mb-4"
+            >
+              Log Out
+            </h2>
+
+            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6">
+              Are you sure you want to log out?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsSignOutConfirmOpen(false)}
+                disabled={isSigningOut}
+                className="px-4 py-2 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSigningOut && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                <span>{isSigningOut ? "Logging Out..." : "Log Out"}</span>
+              </button>
             </div>
           </div>
         </div>
