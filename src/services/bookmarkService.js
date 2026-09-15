@@ -518,12 +518,24 @@ class BookmarkService {
     }
 
     try {
-      const response = await fetch(`${BOOKMARK_API_BASE}/bookmarks/delete/${bookmarkId}`, {
+      // userId is required by the API: it scopes the DELETE to the owning row so
+      // a bare integer id can't be used to remove someone else's bookmark.
+      const url = `${BOOKMARK_API_BASE}/bookmarks/delete/${bookmarkId}`
+        + (userId ? `?userId=${encodeURIComponent(userId)}` : '');
+
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
       });
+
+      if (!response.ok) {
+        // localStorage is already updated, so the UI stays correct on this
+        // device; log it so a server-side delete that silently stops working
+        // is visible instead of looking like success.
+        console.warn(`Bookmark delete rejected by API (${response.status}); kept local removal only.`);
+      }
 
       return { success: true };
     } catch (error) {
