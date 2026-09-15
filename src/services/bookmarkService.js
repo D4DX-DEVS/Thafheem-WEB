@@ -1,3 +1,5 @@
+import { auth } from '../firebase';
+
 // const THAFHEEM_API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://thafheem.net/thafheem-api';
 
 // class BookmarkService {
@@ -267,23 +269,32 @@ const normalizeLang = (lang) => {
 };
 
 class BookmarkService {
-  // Provide a persistent guest id for unauthenticated users
-  static getGuestUserId() {
+  // The API identifies the bookmark owner from this token, not from the userId
+  // in the request, so every bookmark call must carry it. getIdToken() returns
+  // the cached token and only refreshes when it is close to expiring, so
+  // calling this per request is cheap.
+  static async authHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+
     try {
-      const key = 'thafheem_guest_user_id';
-      let guestId = localStorage.getItem(key);
-      if (!guestId) {
-        guestId = `guest_${Math.random().toString(36).slice(2)}_${Date.now()}`;
-        localStorage.setItem(key, guestId);
+      const current = auth?.currentUser;
+      if (current) {
+        headers.Authorization = `Bearer ${await current.getIdToken()}`;
       }
-      return guestId;
-    } catch (_) {
-      return 'guest_user';
+    } catch (error) {
+      // Send it unauthenticated rather than losing the request outright; the
+      // API decides whether that is acceptable.
+      console.warn('Could not attach auth token to bookmark request:', error);
     }
+
+    return headers;
   }
 
-  static getEffectiveUserId(user) {
-    return user?.uid || this.getGuestUserId();
+  // Every write path below falls back to localStorage and reports success, so
+  // without this a rejected request (a 401 once REQUIRE_USER_AUTH is on) looks
+  // identical to a successful one until the user opens another device.
+  static warnRejected(response, action) {
+    console.warn(`Bookmark ${action} rejected by API (${response.status}); local copy kept, server not updated.`);
   }
 
   static getLocalStorageKey(userId) {
@@ -313,13 +324,11 @@ class BookmarkService {
     try {
       const response = await fetch(`${BOOKMARK_API_BASE}/bookmarks?userId=${userId}&bkType=${bookmarkType}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
       });
 
       if (!response.ok) {
-        // Silently fall back to localStorage for expected errors (404, 401) in development
+        BookmarkService.warnRejected(response, 'read');
         const all = this.getLocalBookmarks(userId);
         return Array.isArray(all)
           ? all.filter(b => (bookmarkType ? b.bookmarkType === bookmarkType : true))
@@ -373,13 +382,12 @@ class BookmarkService {
     try {
       const response = await fetch(`${BOOKMARK_API_BASE}/bookmarks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
         body: JSON.stringify(bookmarkData),
       });
 
       if (!response.ok) {
+        BookmarkService.warnRejected(response, 'add');
         return bookmarkData; // localStorage already updated above
       }
 
@@ -405,9 +413,12 @@ class BookmarkService {
     };
 
     try {
-      // Try API first (without Content-Type header to avoid CORS issue)
+      // Content-Type was omitted here to dodge a CORS preflight; the API now
+      // allows Content-Type and Authorization explicitly, and this request has
+      // to carry the token like every other one.
       const response = await fetch(`${BOOKMARK_API_BASE}/bookmarks`, {
         method: 'POST',
+        headers: await BookmarkService.authHeaders(),
         body: JSON.stringify(bookmarkData)
       });
 
@@ -443,14 +454,12 @@ class BookmarkService {
     try {
       const response = await fetch(`${BOOKMARK_API_BASE}/bookmarks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
         body: JSON.stringify(bookmarkData)
       });
 
       if (!response.ok) {
-        // Fallback to localStorage if API fails (401, 403, etc.)
+        BookmarkService.warnRejected(response, 'add');
         const localBookmarks = this.getLocalBookmarks(userId);
         localBookmarks.push(bookmarkData);
         this.saveLocalBookmarks(userId, localBookmarks);
@@ -485,13 +494,12 @@ class BookmarkService {
     try {
       const response = await fetch(`${BOOKMARK_API_BASE}/bookmarks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
         body: JSON.stringify(bookmarkData),
       });
 
       if (!response.ok) {
+        BookmarkService.warnRejected(response, 'add');
         const localBookmarks = this.getLocalBookmarks(userId);
         localBookmarks.push(bookmarkData);
         this.saveLocalBookmarks(userId, localBookmarks);
@@ -525,16 +533,14 @@ class BookmarkService {
 
       const response = await fetch(url, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
       });
 
       if (!response.ok) {
         // localStorage is already updated, so the UI stays correct on this
         // device; log it so a server-side delete that silently stops working
         // is visible instead of looking like success.
-        console.warn(`Bookmark delete rejected by API (${response.status}); kept local removal only.`);
+        BookmarkService.warnRejected(response, 'delete');
       }
 
       return { success: true };
@@ -565,9 +571,7 @@ class BookmarkService {
     try {
       const response = await fetch(`${BOOKMARK_API_BASE}/favorites?userId=${userId}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
       });
 
       if (!response.ok) {
@@ -605,9 +609,7 @@ class BookmarkService {
     try {
       const response = await fetch(`${BOOKMARK_API_BASE}/favorites`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
         body: JSON.stringify(favoriteData),
       });
 
@@ -633,9 +635,7 @@ class BookmarkService {
     try {
       const response = await fetch(`${BOOKMARK_API_BASE}/favorites/${userId}/${surahId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await BookmarkService.authHeaders(),
       });
 
       if (!response.ok) {
