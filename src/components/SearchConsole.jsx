@@ -11,6 +11,7 @@ import {
   fetchRootSeeds,
   fetchRootWordBundle,
 } from "../api/apifunction";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const SearchConsole = ({ onClose, translationLanguage = 'mal' }) => {
   const [englishPhraseType, setEnglishPhraseType] = useState("Translation");
@@ -910,18 +911,7 @@ const SearchConsole = ({ onClose, translationLanguage = 'mal' }) => {
     rootVerseItemsError,
   ]);
 
-  useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
+  useScrollLock();
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center">

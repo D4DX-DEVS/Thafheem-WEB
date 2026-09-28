@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ChevronRight, X } from "lucide-react";
 import { fetchSurahs, fetchPageRanges } from "../api/apifunction";
 import { useTheme } from "../context/ThemeContext";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const SurahSelector = ({ isOpen, onClose, onSelect, currentSurahId }) => {
   const { translationLanguage } = useTheme();
@@ -10,6 +11,7 @@ const SurahSelector = ({ isOpen, onClose, onSelect, currentSurahId }) => {
   const [loading, setLoading] = useState(true);
   const [selectedSurah, setSelectedSurah] = useState(null);
   const [showRanges, setShowRanges] = useState(false);
+  useScrollLock(isOpen);
 
   useEffect(() => {
     const loadData = async () => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import {
   fetchInterpretationRange,
@@ -22,6 +23,7 @@ import WordByWord from "../pages/WordByWord";
 import { processMalayalamMediaLinks, handleMalayalamMediaLinkClick, setMediaPopupHandlers } from "../utils/malayalamMediaLinks";
 import { processMalayalamNoteLinks, handleMalayalamNoteLinkClick, setNotePopupHandlers } from "../utils/malayalamNoteLinks";
 import MediaPopup from "./MediaPopup";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const BlockInterpretationModal = ({
   surahId,
@@ -34,6 +36,7 @@ const BlockInterpretationModal = ({
   blockRanges = [],
 }) => {
   const { user } = useAuth?.() || { user: null };
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [content, setContent] = useState([]);
@@ -248,13 +251,8 @@ const BlockInterpretationModal = ({
     ]
   );
 
-  // Body scroll lock when modal is open
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  // Page scroll lock when modal is open
+  useScrollLock();
 
   // Set up media popup handlers
   useEffect(() => {
@@ -1024,31 +1022,12 @@ const BlockInterpretationModal = ({
     // Simple click detection for sup/a tags
     if (target.tagName === "SUP" || target.tagName === "A") {
       handleNoteHighlightClick(e);
-      return;
     }
 
-    // Legacy fallback: text-based detection
-    const clickedText = target.innerText || target.textContent || "";
-
-    // Look for Malayalam verse patterns first
-    const malayalamMatch =
-      clickedText.match(/അശ്ശുഅറാഅ്,?\s*സൂക്തം:\s*(\d+)\s+(\d+):(\d+)/) ||
-      clickedText.match(/സൂക്തം:\s*(\d+)\s+(\d+):(\d+)/);
-    if (malayalamMatch) {
-      const [, s, v] = malayalamMatch;
-      setVerseRefTarget({ surahId: parseInt(s, 10), ayah: parseInt(v, 10) });
-      setShowVerseRefModal(true);
-      return;
-    }
-
-    // Look for standard verse patterns
-    const verseMatch = clickedText.match(/\(?(\d+)\s*[:：]\s*(\d+)\)?/);
-    if (verseMatch) {
-      const [, s, v] = verseMatch;
-      setVerseRefTarget({ surahId: parseInt(s, 10), ayah: parseInt(v, 10) });
-      setShowVerseRefModal(true);
-      return;
-    }
+    // No text-based fallback here: processVerseReferences already wraps every
+    // verse reference in a .verse-reference-link span. Scanning the clicked
+    // element's text opened the reference popup when clicking anywhere in a
+    // paragraph that merely contained an "N:M" reference.
   };
 
   // Navbar handler functions
@@ -1607,9 +1586,18 @@ const BlockInterpretationModal = ({
   };
 
   const handleBookmark = async () => {
+    // Bookmarks are tied to a real account: the API identifies the owner from
+    // the signed-in user's token, so there is nothing to attach this to when
+    // signed out.
+    if (!user) {
+      alert("Please sign in to bookmark interpretations");
+      navigate("/sign");
+      return;
+    }
+
     try {
       setIsBookmarking(true);
-      const userId = BookmarkService.getEffectiveUserId(user);
+      const userId = user.uid;
 
       // Use the new block interpretation bookmark method
       await BookmarkService.addBlockInterpretationBookmark(
@@ -1685,12 +1673,14 @@ const BlockInterpretationModal = ({
     if (!text || typeof text !== "string") return text;
 
     // Pattern to match verse references like (2:163), (1:2), 2:163, etc.
-    const versePattern = /\(?(\d+)\s*[:：]\s*(\d+)\)?/g;
+    // No whitespace around the colon: spaced refs such as "(മത്തായി 2: 13-23)"
+    // are Bible citations, not Quran references, and must stay plain text.
+    const versePattern = /\(?(\d+)[:：](\d+)\)?/g;
 
         // Strictly (N:M) — digits, colon, digits, wrapped in parens with nothing else — is an
     // interpretation cross-ref (old site: thaf-api/intptrayarange/:surah/:no/M).
     // Bare refs like 36:65 or navigate to the ayah/verse view instead.
-    const isInterpretationRef = (m) => /^\(\d+\s*[:：]\s*\d+\)$/.test(m);
+    const isInterpretationRef = (m) => /^\(\d+[:：]\d+\)$/.test(m);
 
     let processed = text.replace(versePattern, (match, surah, ayah) => {
       // Check if already wrapped in a clickable element

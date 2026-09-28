@@ -80,6 +80,7 @@ const decodeHTML = (html) => {
 };
 import { useSurahViewCache } from "../context/SurahViewCacheContext";
 import useSequentialEnglishFootnotes from "../hooks/useSequentialEnglishFootnotes";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const TAMIL_PAGE_SIZE = 25;
 const DEFAULT_TRANSLATION_PAGE_SIZE = 40;
@@ -196,6 +197,10 @@ const Surah = () => {
 
   // English footnote modal state
   const [showEnglishFootnoteModal, setShowEnglishFootnoteModal] = useState(false);
+  useScrollLock(showHindiFootnoteModal);
+  useScrollLock(showUrduFootnoteModal);
+  useScrollLock(showBanglaExplanationModal);
+  useScrollLock(showEnglishFootnoteModal);
   const [englishFootnoteContent, setEnglishFootnoteContent] = useState('');
   const [englishFootnoteLoading, setEnglishFootnoteLoading] = useState(false);
 

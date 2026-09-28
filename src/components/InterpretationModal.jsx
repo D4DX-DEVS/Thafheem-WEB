@@ -9,6 +9,7 @@ import banglaTranslationService from "../services/banglaTranslationService";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "./Toast";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const determineModalWidthClass = (plainTextLength = 0) => {
   if (plainTextLength <= 400) {
@@ -37,6 +38,7 @@ const extractPlainText = (content) => {
 const InterpretationModal = ({ surahId, verseId, interpretationNo, language, onClose }) => {
   const { adjustedTranslationFontSize, translationLanguage } = useTheme();
   const { toasts, removeToast } = useToast();
+  useScrollLock();
 
   // State management
   const [interpretationData, setInterpretationData] = useState(null);
@@ -222,13 +224,15 @@ const InterpretationModal = ({ surahId, verseId, interpretationNo, language, onC
     if (!text || typeof text !== "string") return text;
 
     // Pattern to match verse references like (2:163), (1:2), 2:163, etc.
-    const versePattern = /\(?(\d+)\s*[:：]\s*(\d+)\)?/g;
+    // No whitespace around the colon: spaced refs such as "(മത്തായി 2: 13-23)"
+    // are Bible citations, not Quran references, and must stay plain text.
+    const versePattern = /\(?(\d+)[:：](\d+)\)?/g;
 
     // Strictly (N:M) — digits, colon, digits, wrapped in parens with nothing else — is an
     // interpretation cross-ref (old site: thaf-api/intptrayarange/:surah/:no/M).
     // Bare refs like 36:65 or (ഖുര്‍ആന്‍ 5:117) navigate to the ayah/verse view instead.
     const isMal = (language || translationLanguage) === 'mal';
-    const isInterpretationRef = (m) => /^\(\d+\s*[:：]\s*\d+\)$/.test(m);
+    const isInterpretationRef = (m) => /^\(\d+[:：]\d+\)$/.test(m);
 
     return text.replace(versePattern, (match, surah, ayah) => {
       // Check if already wrapped in a clickable element

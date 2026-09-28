@@ -7,6 +7,7 @@ import DemoItems from '../pages/DemoItems';
 import { useSurahData } from '../hooks/useSurahData';
 import { useTheme } from '../context/ThemeContext';
 import { SidebarListSkeleton } from '../components/LoadingSkeleton';
+import { useScrollLock } from "../hooks/useScrollLock";
 
 // Custom Kaaba Icon Component (Makkah)
 const KaabaIcon = ({ className }) => (
@@ -48,6 +49,7 @@ const NavigateSurah = ({ onClose, onSurahSelect }) => {
   const navigate = useNavigate();
   const { translationLanguage } = useTheme();
   const scrollContainerRef = useRef(null);
+  useScrollLock();
 
   const tabs = ['Surah', 'Verse', 'Juz', 'Page'];
   const tabTranslations = {
@@ -311,6 +313,7 @@ const NavigateSurah = ({ onClose, onSurahSelect }) => {
                 return (
                   <li
                     key={surah.id || surah.number}
+                    value={surah.id || surah.number}
                     ref={String(surah.id || surah.number) === String(currentSurahId) ? selectedItemRef : null}
                     onClick={() => handleSurahClick(surah)}
                     className={`cursor-pointer transition-colors py-1.5 px-2 rounded-lg ${

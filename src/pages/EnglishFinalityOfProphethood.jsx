@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchEnglishFinalityOfProphethood, fetchEnglishFinalityFootnote } from "../api/apifunction";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const EnglishFinalityOfProphethood = () => {
   const [sections, setSections] = useState([]);
@@ -12,6 +13,7 @@ const EnglishFinalityOfProphethood = () => {
     loading: false,
     error: null,
   });
+  useScrollLock(footnoteModal.open);
 
   useEffect(() => {
     let isMounted = true;

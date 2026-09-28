@@ -25,6 +25,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/Toast";
 import { WordGridSkeleton } from "../components/LoadingSkeleton";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const WordByWord = ({
   selectedVerse,
@@ -36,6 +37,7 @@ const WordByWord = ({
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  useScrollLock();
 
   // Use URL parameters if available, otherwise fall back to props
   const currentSurahId = params.surahId || surahId;

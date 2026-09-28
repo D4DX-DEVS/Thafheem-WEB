@@ -1278,8 +1278,7 @@ const BlockWise = () => {
                                 ...prev,
                                 [key]: true,
                               }));
-                              const userId =
-                                BookmarkService.getEffectiveUserId(user);
+                              const userId = user.uid;
                               await BookmarkService.addBlockBookmark(
                                 userId,
                                 surahId,

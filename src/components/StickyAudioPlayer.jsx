@@ -21,6 +21,7 @@ import {
   setPlaybackState,
   clearMediaSession,
 } from '../utils/mediaSession';
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const StickyAudioPlayer = ({ 
   audioElement, 
@@ -50,6 +51,7 @@ const StickyAudioPlayer = ({
   const [isMuted, setIsMuted] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  useScrollLock(showSettingsModal);
   const [showReciterDropdown, setShowReciterDropdown] = useState(false);
   const isUpdatingAudioTypes = useRef(false);
   const isInteracting = useRef(false); // Second protection layer for checkbox interactions

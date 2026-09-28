@@ -59,6 +59,7 @@ import HoverableArabicText from "../components/HoverableArabicText";
 import TajweedVerse from "../components/TajweedVerse";
 import { saveLastReading } from "../services/readingProgressService";
 import { useAnalytics } from "../context/AnalyticsContext";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const BlockWise = () => {
   const [activeTab, setActiveTab] = useState("Translation");
@@ -129,6 +130,8 @@ const BlockWise = () => {
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   // English footnote modal state
   const [showEnglishFootnoteModal, setShowEnglishFootnoteModal] = useState(false);
+  useScrollLock(showInterpretation && !!selectedNumber);
+  useScrollLock(showEnglishFootnoteModal);
   const [englishFootnoteContent, setEnglishFootnoteContent] = useState("");
   const [englishFootnoteLoading, setEnglishFootnoteLoading] = useState(false);
   const [englishFootnoteMeta, setEnglishFootnoteMeta] = useState({
@@ -3217,8 +3220,7 @@ const BlockWise = () => {
                                   ...prev,
                                   [key]: true,
                                 }));
-                                const userId =
-                                  BookmarkService.getEffectiveUserId(user);
+                                const userId = user.uid;
                                 await BookmarkService.addBlockBookmark(
                                   userId,
                                   surahId,
