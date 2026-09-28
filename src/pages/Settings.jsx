@@ -12,6 +12,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAnalytics } from "../context/AnalyticsContext";
 import { useLocation } from "react-router-dom";
 import ToggleGroup from "../components/ToggleGroup";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 // Helper function to convert language code to display name
 const getLanguageNameFromCode = (code) => {
@@ -104,13 +105,8 @@ const Settings = ({ onClose }) => {
     getLanguageNameFromCode(contextTranslationLanguage)
   );
 
-  // Prevent body scroll when Settings is open
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  // Prevent page scroll when Settings is open
+  useScrollLock();
 
   // Sync language state when translationLanguage changes externally
   useEffect(() => {

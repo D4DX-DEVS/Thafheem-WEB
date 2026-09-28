@@ -29,6 +29,7 @@ import { processMalayalamMediaLinks, handleMalayalamMediaLinkClick, setMediaPopu
 import { processMalayalamNoteLinks, handleMalayalamNoteLinkClick, setNotePopupHandlers } from "../utils/malayalamNoteLinks";
 import MediaPopup from "./MediaPopup";
 import NotePopup from "./NotePopup";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 // Helper function to decode HTML entities
 const decodeHTML = (html) => {
@@ -812,20 +813,8 @@ const AyahModal = ({ surahId, verseId, onClose }) => {
     }
   };
 
-  // Prevent body scroll when word-by-word modal is open
-  useEffect(() => {
-    if (showWordByWord) {
-      // Save current body overflow style
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      // Prevent scrolling
-      document.body.style.overflow = 'hidden';
-
-      // Restore on cleanup
-      return () => {
-        document.body.style.overflow = originalStyle;
-      };
-    }
-  }, [showWordByWord]);
+  // Prevent page scroll while the modal (and its word-by-word popup) is open
+  useScrollLock();
 
   // Portal target
   const modalRoot = document.getElementById('modal-root') || document.body;

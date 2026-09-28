@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Copy, Share2 } from 'lucide-react';
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const determineContainerWidth = (plainTextLength = 0) => {
   if (plainTextLength <= 400) {
@@ -23,6 +24,7 @@ const NotePopup = ({
 }) => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  useScrollLock(isOpen);
 
   if (!isOpen) return null;
 

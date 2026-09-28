@@ -6,6 +6,7 @@ import NotePopup from "./NotePopup";
 import VerseReferenceModal from "./VerseReferenceModal";
 import BlockInterpretationModal from "./BlockInterpretationModal";
 import { fetchNoteById } from "../api/apifunction";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const BlockWiseSurahInfoModal = ({ surahId, onClose }) => {
   const [surahIntro, setSurahIntro] = useState(null);
@@ -60,12 +61,7 @@ const BlockWiseSurahInfoModal = ({ surahId, onClose }) => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  useScrollLock();
 
   const getPrefaceParagraphs = useMemo(
     () => (htmlString) => {

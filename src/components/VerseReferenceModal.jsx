@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { fetchAyaRanges, fetchAyaTranslation, fetchArabicVerses } from "../api/apifunction";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 /**
  * VerseReferenceModal — Shows Arabic text + block translation for a referenced verse.
@@ -28,24 +29,8 @@ const VerseReferenceModal = ({ surahId, ayah, language = "mal", onInterpretation
 
   const modalRoot = document.getElementById("modal-root") || document.body;
 
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-    
-    // Calculate scrollbar width to prevent layout shift
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    
-    document.body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    }
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-    };
-  }, []);
+  // Lock page scroll when modal is open
+  useScrollLock();
 
   useEffect(() => {
     if (!surahId || !ayah) return;

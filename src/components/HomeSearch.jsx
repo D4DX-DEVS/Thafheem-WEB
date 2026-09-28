@@ -6,6 +6,7 @@ import banner from "../assets/banner.png";
 import { Play } from "lucide-react";
 import { searchQuran, fetchPopularChapters, searchWordsPaginated, searchArabicPhrases, searchSurahsByName, fetchSurahs, searchSubjects, getSubjectResults, searchRoots, fetchRootWordVerses } from "../api/apifunction";
 import { useAnalytics } from "../context/AnalyticsContext";
+import { useScrollLock } from "../hooks/useScrollLock";
 import {
   getLastReading,
   LAST_READING_STORAGE_KEY,
@@ -203,21 +204,8 @@ const HomepageSearch = () => {
     }).catch(() => {});
   }, [translationLanguage]);
 
-  // Lock body scroll when search results open
-  useEffect(() => {
-    if (showSearchResults) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = '0px';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    };
-  }, [showSearchResults]);
+  // Lock page scroll when search results open
+  useScrollLock(showSearchResults);
 
   useEffect(() => {
     setLastReading(getLastReading());

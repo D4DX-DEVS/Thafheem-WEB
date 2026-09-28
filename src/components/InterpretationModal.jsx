@@ -9,6 +9,7 @@ import banglaTranslationService from "../services/banglaTranslationService";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "./Toast";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const determineModalWidthClass = (plainTextLength = 0) => {
   if (plainTextLength <= 400) {
@@ -37,6 +38,7 @@ const extractPlainText = (content) => {
 const InterpretationModal = ({ surahId, verseId, interpretationNo, language, onClose }) => {
   const { adjustedTranslationFontSize, translationLanguage } = useTheme();
   const { toasts, removeToast } = useToast();
+  useScrollLock();
 
   // State management
   const [interpretationData, setInterpretationData] = useState(null);

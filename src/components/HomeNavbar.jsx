@@ -60,6 +60,7 @@ import { useAnalytics } from "../context/AnalyticsContext";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import SettingsDrawer from "../pages/Settings";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const HomepageNavbar = () => {
   const { theme, toggleTheme, setViewType, translationLanguage, setTranslationLanguage, audioTypes, setAudioTypes, playbackSpeed, setPlaybackSpeed, reciter, setReciter, getAvailableAudioTypes } = useTheme();
@@ -90,17 +91,10 @@ const HomepageNavbar = () => {
   const toggleSubmenu = (index) =>
     setOpenSubmenu(openSubmenu === index ? null : index);
 
-  // Lock body scroll when side menu is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isMenuOpen]);
+  // Lock page scroll when side menu or a navbar modal is open
+  useScrollLock(isMenuOpen);
+  useScrollLock(isShareOpen);
+  useScrollLock(isSignOutConfirmOpen);
 
   // Resolve share URL from env or current origin
   const PUBLIC_URL = import.meta.env.VITE_PUBLIC_URL || window.location.origin;

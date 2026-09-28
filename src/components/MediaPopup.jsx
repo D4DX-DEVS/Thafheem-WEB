@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { API_BASE_PATH } from '../config/apiConfig';
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const MediaPopup = ({ isOpen, onClose, mediaId }) => {
   const [loading, setLoading] = useState(true);
@@ -46,17 +47,8 @@ const MediaPopup = ({ isOpen, onClose, mediaId }) => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Prevent body scroll
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  // Prevent page scroll
+  useScrollLock(isOpen);
 
   if (!isOpen) return null;
 

@@ -22,6 +22,7 @@ import {
 import { FALLBACK_TAJWEED_MAIN_RULES } from "../data/tajweedFallback";
 import TajweedVerse from "../components/TajweedVerse";
 import { AccordionSkeleton } from "../components/LoadingSkeleton";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const Tajweed = () => {
   const [expandedSections, setExpandedSections] = useState({});
@@ -49,6 +50,7 @@ const Tajweed = () => {
   const { quranFont, setTajweedEnabled } = useTheme();
   const navigate = useNavigate();
   const [showSurahSelector, setShowSurahSelector] = useState(false);
+  useScrollLock(isPopupOpen);
   const [portalRoot, setPortalRoot] = useState(null);
   const audioRef = useRef(null);
 

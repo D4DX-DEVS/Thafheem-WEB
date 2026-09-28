@@ -20,6 +20,7 @@ import { useSurahData } from "../hooks/useSurahData";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { QuizSkeleton } from "../components/LoadingSkeleton";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const SURAH_PAGE_SIZE = 5;
 const THAFHEEM_PAGE_SIZE = 20;
@@ -71,6 +72,7 @@ const Quiz = () => {
   const [quizTitle, setQuizTitle] = useState("തഫ്ഹീം പ്രശ്നോത്തരി");
 
   const [showSurahDropdown, setShowSurahDropdown] = useState(false);
+  useScrollLock(showSurahDropdown);
   const [searchQuery, setSearchQuery] = useState("");
   const [ayahRanges, setAyahRanges] = useState([]);
   const [loadingRanges, setLoadingRanges] = useState(false);

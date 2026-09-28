@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { fetchUrduFinalityOfProphethood, fetchUrduFinalityFootnote } from "../api/apifunction";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const UrduFinalityOfProphethood = () => {
   const [sections, setSections] = useState([]);
@@ -15,6 +16,7 @@ const UrduFinalityOfProphethood = () => {
     loading: false,
     error: null,
   });
+  useScrollLock(footnoteModal.open);
 
   useEffect(() => {
     let isMounted = true;

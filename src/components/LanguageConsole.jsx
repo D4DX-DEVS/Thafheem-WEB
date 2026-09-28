@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Check } from 'lucide-react';
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const LanguageConsole = ({ onClose, onLanguageSelect, selectedLanguage = 'English' }) => {
   const [currentSelected, setCurrentSelected] = useState(selectedLanguage);
@@ -10,13 +11,8 @@ const LanguageConsole = ({ onClose, onLanguageSelect, selectedLanguage = 'Englis
     setCurrentSelected(selectedLanguage);
   }, [selectedLanguage]);
 
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  // Prevent page scroll when modal is open
+  useScrollLock();
 
   const languages = [
     {

@@ -23,6 +23,7 @@ import WordByWord from "../pages/WordByWord";
 import { processMalayalamMediaLinks, handleMalayalamMediaLinkClick, setMediaPopupHandlers } from "../utils/malayalamMediaLinks";
 import { processMalayalamNoteLinks, handleMalayalamNoteLinkClick, setNotePopupHandlers } from "../utils/malayalamNoteLinks";
 import MediaPopup from "./MediaPopup";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const BlockInterpretationModal = ({
   surahId,
@@ -250,13 +251,8 @@ const BlockInterpretationModal = ({
     ]
   );
 
-  // Body scroll lock when modal is open
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  // Page scroll lock when modal is open
+  useScrollLock();
 
   // Set up media popup handlers
   useEffect(() => {
@@ -1026,31 +1022,12 @@ const BlockInterpretationModal = ({
     // Simple click detection for sup/a tags
     if (target.tagName === "SUP" || target.tagName === "A") {
       handleNoteHighlightClick(e);
-      return;
     }
 
-    // Legacy fallback: text-based detection
-    const clickedText = target.innerText || target.textContent || "";
-
-    // Look for Malayalam verse patterns first
-    const malayalamMatch =
-      clickedText.match(/അശ്ശുഅറാഅ്,?\s*സൂക്തം:\s*(\d+)\s+(\d+):(\d+)/) ||
-      clickedText.match(/സൂക്തം:\s*(\d+)\s+(\d+):(\d+)/);
-    if (malayalamMatch) {
-      const [, s, v] = malayalamMatch;
-      setVerseRefTarget({ surahId: parseInt(s, 10), ayah: parseInt(v, 10) });
-      setShowVerseRefModal(true);
-      return;
-    }
-
-    // Look for standard verse patterns
-    const verseMatch = clickedText.match(/\(?(\d+)\s*[:：]\s*(\d+)\)?/);
-    if (verseMatch) {
-      const [, s, v] = verseMatch;
-      setVerseRefTarget({ surahId: parseInt(s, 10), ayah: parseInt(v, 10) });
-      setShowVerseRefModal(true);
-      return;
-    }
+    // No text-based fallback here: processVerseReferences already wraps every
+    // verse reference in a .verse-reference-link span. Scanning the clicked
+    // element's text opened the reference popup when clicking anywhere in a
+    // paragraph that merely contained an "N:M" reference.
   };
 
   // Navbar handler functions

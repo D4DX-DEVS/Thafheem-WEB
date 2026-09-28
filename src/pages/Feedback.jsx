@@ -6,6 +6,7 @@ import { useToast } from '../hooks/useToast';
 import { ToastContainer } from '../components/Toast';
 import googlePlayBadge from '../assets/google-play-badge.png';
 import appStoreBadge from '../assets/app-store-badge.png';
+import { useScrollLock } from "../hooks/useScrollLock";
 
 // ─── Country Codes ────────────────────────────────────────────────────────────
 
@@ -1156,14 +1157,7 @@ const EmojiRatingGroup = ({ label, name, options, value, onChange, required }) =
 // ─── Success Popup ────────────────────────────────────────────────────────────
 
 const SuccessPopup = ({ isOpen, onClose, name, type = 'feedback' }) => {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   if (!isOpen) return null;
 

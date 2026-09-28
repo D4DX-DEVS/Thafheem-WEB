@@ -6,6 +6,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import NotePopup from "./NotePopup";
 import audioManager from "../utils/audioManager";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const SurahInfoModal = ({ surahId, onClose }) => {
   const [surahInfo, setSurahInfo] = useState(null);
@@ -63,13 +64,8 @@ const SurahInfoModal = ({ surahId, onClose }) => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+  // Prevent page scroll when modal is open
+  useScrollLock();
 
   // Stop and cleanup preface audio when surah changes or modal unmounts
   useEffect(() => {
