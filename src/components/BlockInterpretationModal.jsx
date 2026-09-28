@@ -1673,12 +1673,14 @@ const BlockInterpretationModal = ({
     if (!text || typeof text !== "string") return text;
 
     // Pattern to match verse references like (2:163), (1:2), 2:163, etc.
-    const versePattern = /\(?(\d+)\s*[:：]\s*(\d+)\)?/g;
+    // No whitespace around the colon: spaced refs such as "(മത്തായി 2: 13-23)"
+    // are Bible citations, not Quran references, and must stay plain text.
+    const versePattern = /\(?(\d+)[:：](\d+)\)?/g;
 
         // Strictly (N:M) — digits, colon, digits, wrapped in parens with nothing else — is an
     // interpretation cross-ref (old site: thaf-api/intptrayarange/:surah/:no/M).
     // Bare refs like 36:65 or navigate to the ayah/verse view instead.
-    const isInterpretationRef = (m) => /^\(\d+\s*[:：]\s*\d+\)$/.test(m);
+    const isInterpretationRef = (m) => /^\(\d+[:：]\d+\)$/.test(m);
 
     let processed = text.replace(versePattern, (match, surah, ayah) => {
       // Check if already wrapped in a clickable element
