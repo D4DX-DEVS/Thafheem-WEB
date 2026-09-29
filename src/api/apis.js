@@ -80,16 +80,6 @@ export const TAJWEED_FONT_CDN_BASE =
   `${API_BASE_URL}/fonts/tajweed`;
 export const getTajweedFontUrl = (page) => `${TAJWEED_FONT_CDN_BASE}/p${page}.woff2`;
 // WORD_MEANINGS_API - Removed: Now using new API at ${API_BASE_PATH}/{language}/word-by-word/{surahId}/{verseId}
-export const MALARTICLES_API = isDevelopment ? '/api/old-thaf-api/malarticles' : "https://old.thafheem.net/thaf-api/malarticles";
-export const ENGARTICLES_API = isDevelopment ? '/api/old-thaf-api/engarticles' : "https://old.thafheem.net/thaf-api/engarticles";
-export const ARTICLES_API = isDevelopment ? '/api/old-thaf-api/articles' : "https://old.thafheem.net/thaf-api/articles";
-// Use proxy path in development to avoid CORS, direct URL in production
-// Production must use: https://old.thafheem.net/thaf-api/quranaya
-// This is different from blockwise interpretation which uses a different endpoint
-// Force direct URL in production to avoid proxy/rewrite issues
-export const MALAYALAM_QURANAYA_API = import.meta.env.PROD
-  ? 'https://old.thafheem.net/thaf-api/quranaya'
-  : '/api/old-thaf-api/quranaya';
 
 // Feedback & Feature Request endpoints
 export const FEEDBACK_API = `${API_BASE_PATH}/feedback`;

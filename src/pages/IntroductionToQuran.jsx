@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { fetchMalayalamIntroductionToQuran, fetchEnglishIntroductionToQuran, fetchHindiIntroductionToQuran, fetchBanglaIntroductionToQuran, fetchTamilIntroductionToQuran } from "../api/apifunction";
+import useSectionAudio from "../hooks/useSectionAudio";
+import SectionAudioButton from "../components/SectionAudioButton";
+
+const MALAYALAM_AUDIO_LABELS = {
+  play: "ഓഡിയോ കേൾക്കുക",
+  pause: "ഓഡിയോ നിർത്തുക",
+  unavailable: "ഓഡിയോ ലഭ്യമല്ല, വീണ്ടും ശ്രമിക്കുക",
+};
 
 const URDU_INTRODUCTION = `
 <div dir="rtl" style="text-align: right;">
@@ -46,6 +54,12 @@ const IntroductionToQuran = () => {
   const [tocOpen, setTocOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(0);
   const sidebarNavRef = useRef(null);
+  const { playingKey, failedKeys, toggle: toggleAudio, stop: stopAudio } = useSectionAudio();
+
+  // Section audio only exists for Malayalam; stop it if the language changes.
+  useEffect(() => {
+    if (!isMalayalam) stopAudio();
+  }, [isMalayalam, stopAudio]);
 
   const stripHtml = (html) => {
     if (!html) return "";
@@ -380,12 +394,26 @@ const IntroductionToQuran = () => {
                           id={`introduction-section-${index}`}
                           className="bg-white dark:bg-[#1b1d27] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 sm:p-7"
                         >
-                          {section.title && (
-                            <h3
-                              className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 font-malayalam"
-                              dangerouslySetInnerHTML={{ __html: section.title }}
-                              style={{ fontFamily: "'Noto Sans Malayalam', serif" }}
-                            />
+                          {(section.title || section.audio_url) && (
+                            <div className="flex items-start justify-between gap-3 mb-4">
+                              {section.title ? (
+                                <h3
+                                  className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white font-malayalam"
+                                  dangerouslySetInnerHTML={{ __html: section.title }}
+                                  style={{ fontFamily: "'Noto Sans Malayalam', serif" }}
+                                />
+                              ) : (
+                                <span />
+                              )}
+                              {section.audio_url && (
+                                <SectionAudioButton
+                                  isPlaying={playingKey === (section.id ?? index)}
+                                  isUnavailable={failedKeys.has(section.id ?? index)}
+                                  onToggle={() => toggleAudio(section.id ?? index, section.audio_url)}
+                                  labels={MALAYALAM_AUDIO_LABELS}
+                                />
+                              )}
+                            </div>
                           )}
                           <div
                             className="max-w-none font-malayalam malayalam-introduction-content text-gray-800 dark:text-gray-200"
