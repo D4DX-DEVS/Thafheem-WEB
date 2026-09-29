@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { SurahViewCacheProvider } from "./context/SurahViewCacheContext";
@@ -43,8 +43,6 @@ const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const LogOut = lazy(() => import("./pages/LogOut"));
 const Conclusion = lazy(() => import("./pages/Conclusion"));
 const Tajweed = lazy(() => import("./pages/Tajweed"));
-const QuranStudy = lazy(() => import("./pages/QuranStudy"));
-const EndofProphethood = lazy(() => import("./pages/EndofProphethood"));
 const WordByWordPage = lazy(() => import("./pages/WordByWordPage"));
 const InterpretationBlockwise = lazy(() => import("./pages/InterpretationBlockwise"));
 const Note = lazy(() => import("./pages/Note"));
@@ -158,8 +156,8 @@ function App() {
                 <Route path="/logout" element={<LogOut />} />
                 <Route path="/conclusion" element={<Conclusion />} />
                 <Route path="/tajweed" element={<Tajweed />} />
-                <Route path="/quranstudy" element={<QuranStudy />} />
-                <Route path="/end" element={<EndofProphethood />} />
+                <Route path="/quranstudy" element={<Navigate to="/introduction-to-quran" replace />} />
+                <Route path="/end" element={<Navigate to="/english/finality-of-prophethood" replace />} />
                 <Route path="/urdu/finality-of-prophethood" element={<UrduFinalityOfProphethood />} />
                 <Route path="/urdu/jesus-mohammed" element={<UrduJesusMohammed />} />
                 <Route path="/contact" element={<Contact />} />
