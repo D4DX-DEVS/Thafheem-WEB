@@ -89,14 +89,9 @@ export default defineConfig({
         target: 'https://thafheem.net',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/thafheem/, '/thafheem-api'),
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-})
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            attachLegacyHeaders(proxyReq)
-          })
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-})
+        configure: (proxy) => {
+          proxy.on('error', () => {})
+          proxy.on('proxyReq', (proxyReq) => attachLegacyHeaders(proxyReq))
         },
       },
       // Proxy Quran.com API calls
@@ -104,9 +99,8 @@ export default defineConfig({
         target: 'https://api.quran.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/quran/, '/api/v4'),
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-})
+        configure: (proxy) => {
+          proxy.on('error', () => {})
           proxy.on('proxyReq', (proxyReq) => attachLegacyHeaders(proxyReq))
         },
       },
@@ -115,9 +109,8 @@ export default defineConfig({
         target: 'https://directus.d4dx.co',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/directus/, ''),
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-})
+        configure: (proxy) => {
+          proxy.on('error', () => {})
           proxy.on('proxyReq', (proxyReq) => attachLegacyHeaders(proxyReq))
         },
       }
