@@ -26,6 +26,13 @@ import { useToast } from "../hooks/useToast";
 import { ToastContainer } from "../components/Toast";
 import { WordGridSkeleton } from "../components/LoadingSkeleton";
 import { useScrollLock } from "../hooks/useScrollLock";
+import {
+  isVerseNumberToken,
+  dedupeThafheemWords,
+  getBreakdownRows,
+  buildWordByWordClipboard,
+  writeWordByWordClipboard,
+} from "../utils/wordByWordCopy";
 
 const WordByWord = ({
   selectedVerse,
@@ -80,25 +87,25 @@ const WordByWord = ({
         const promises = [
           translationLanguage === 'ta'
             ? tamilWordByWordService.getWordByWordDataWithArabic(currentSurahId, currentVerseId)
-              .catch(async (error) => {
+              .catch(async () => {
                 // Fallback to English if Tamil service fails
                 return await fetchWordByWordMeaning(currentSurahId, currentVerseId, 'E');
               })
             : translationLanguage === 'hi'
               ? hindiWordByWordService.getWordByWordDataWithArabic(currentSurahId, currentVerseId)
-                .catch(async (error) => {
+                .catch(async () => {
                   // Fallback to English if Hindi service fails
                   return await fetchWordByWordMeaning(currentSurahId, currentVerseId, 'E');
                 })
               : translationLanguage === 'bn'
                 ? banglaWordByWordService.getWordByWordDataWithArabic(currentSurahId, currentVerseId)
-                  .catch(async (error) => {
+                  .catch(async () => {
                     // Fallback to English if Bangla service fails
                     return await fetchWordByWordMeaning(currentSurahId, currentVerseId, 'E');
                   })
                 : translationLanguage === 'mal'
                   ? malayalamTranslationService.getWordByWordDataWithArabic(currentSurahId, currentVerseId)
-                    .catch(async (error) => {
+                    .catch(async () => {
                       // Fallback to English if Malayalam service fails
                       return await fetchWordByWordMeaning(currentSurahId, currentVerseId, 'E');
                     })
@@ -173,7 +180,7 @@ const WordByWord = ({
     }
   };
 
-  const handleShowAyahModal = (verseNumber) => {
+  const handleShowAyahModal = () => {
     setShowAyahModal(true);
   };
 
@@ -221,6 +228,44 @@ const WordByWord = ({
   };
 
   const currentDisplayLanguage = getDisplayLanguage(translationLanguage);
+
+  // Copies what the popup shows: verse, translation and every word row
+  // (meaning left, Arabic right).
+  const handleCopy = async () => {
+    const hasApiWords = wordData?.words?.length > 0;
+    const breakdownTitle = hasApiWords
+      ? translationLanguage === 'bn'
+        ? 'Word Breakdown'
+        : `Word Breakdown (${currentDisplayLanguage})`
+      : translationLanguage === 'mal' && thafheemWords?.length > 0
+        ? 'Word Breakdown (Malayalam)'
+        : 'Word Breakdown';
+
+    const clipboard = buildWordByWordClipboard({
+      surahName: surahInfo?.name || `Surah ${currentSurahId}`,
+      surahArabic: surahInfo?.arabic || '',
+      verseLabel: `Verse ${currentVerseId}${totalVerses ? ` of ${totalVerses}` : ''}`,
+      verseArabic:
+        wordData?.text_uthmani ||
+        (wordData?.words || [])
+          .map((word) => word.text_uthmani || word.text_simple)
+          .join(' '),
+      translation: wordData?.translations?.[0]?.text || '',
+      breakdownTitle,
+      rows: getBreakdownRows({ wordData, thafheemWords, translationLanguage }),
+      arabicFont: quranFont,
+    });
+
+    try {
+      await writeWordByWordClipboard(clipboard);
+      showSuccess('Word-by-word content copied to clipboard');
+      return true;
+    } catch (err) {
+      console.error('Failed to copy word-by-word content:', err);
+      showError('Failed to copy. Please try again.');
+      return false;
+    }
+  };
 
   if (loading) {
     return createPortal(
@@ -323,6 +368,7 @@ const WordByWord = ({
             showSuccess={showSuccess}
             showError={showError}
             translationLanguage={translationLanguage}
+            onCopy={handleCopy}
           />
         </div>
 
@@ -403,16 +449,10 @@ const WordByWord = ({
               )}
               <div className="space-y-4">
                 {wordData.words.map((word, index) => {
-                  const arabicText = word.text_uthmani || word.text_simple || "";
                   const hasTranslation = !!(word.translation && word.translation.text);
 
                   // Hide tokens that are just verse numbers (e.g. ﴿١﴾, (١), (1)) with no translation
-                  const isArabicDigitOnly =
-                    arabicText &&
-                    /^[\s()\u0660-\u0669\u06F0-\u06F9\uFD3E\uFD3F0-9]+$/.test(arabicText) &&
-                    !hasTranslation;
-
-                  if (isArabicDigitOnly) {
+                  if (isVerseNumberToken(word)) {
                     return null;
                   }
 
@@ -505,16 +545,7 @@ const WordByWord = ({
               <div className="space-y-4">
                 {(() => {
                   // Deduplicate words based on WordPhrase to avoid showing the same word twice
-                  const uniqueWords = thafheemWords.reduce((acc, word, index) => {
-                    const wordPhrase = word.WordPhrase || word.text_uthmani || word.text_simple || '';
-                    const existingIndex = acc.findIndex(existing =>
-                      (existing.WordPhrase || existing.text_uthmani || existing.text_simple) === wordPhrase
-                    );
-                    if (existingIndex === -1) {
-                      acc.push({ ...word, originalIndex: index });
-                    }
-                    return acc;
-                  }, []);
+                  const uniqueWords = dedupeThafheemWords(thafheemWords);
 
                   return uniqueWords.map((word, index) => {
                     const wordPhrase = word.WordPhrase || word.text_uthmani || word.text_simple || '';

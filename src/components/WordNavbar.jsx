@@ -6,6 +6,8 @@ import {
   Bookmark,
   Share2,
   BookOpen,
+  Copy,
+  Check,
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -26,8 +28,10 @@ const WordNavbar = ({
   showSuccess = null,
   showError = null,
   translationLanguage = null,
+  onCopy = null,
 }) => {
   const [visible, setVisible] = useState(true);
+  const [copied, setCopied] = useState(false);
   const [surahs, setSurahs] = useState([]);
   const [showSurahDropdown, setShowSurahDropdown] = useState(false);
   const [showVerseDropdown, setShowVerseDropdown] = useState(false);
@@ -109,6 +113,15 @@ const WordNavbar = ({
       }
     } finally {
       setTimeout(() => setIsBookmarking(false), 300);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!onCopy) return;
+    const didCopy = await onCopy();
+    if (didCopy) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -324,6 +337,21 @@ const WordNavbar = ({
               onClick={() => onShowAyahModal && onShowAyahModal(selectedVerse)}
             >
               <BookOpen className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600 dark:text-gray-300" />
+            </button>
+          )}
+
+          {onCopy && (
+            <button
+              onClick={handleCopy}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title={copied ? "Copied" : "Copy word-by-word content"}
+              aria-label={copied ? "Copied" : "Copy word-by-word content"}
+            >
+              {copied ? (
+                <Check className="w-4 sm:w-5 h-4 sm:h-5 text-green-500" />
+              ) : (
+                <Copy className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600 dark:text-gray-300" />
+              )}
             </button>
           )}
 
