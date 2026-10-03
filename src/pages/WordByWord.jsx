@@ -232,15 +232,6 @@ const WordByWord = ({
   // Copies what the popup shows: verse, translation and every word row
   // (meaning left, Arabic right).
   const handleCopy = async () => {
-    const hasApiWords = wordData?.words?.length > 0;
-    const breakdownTitle = hasApiWords
-      ? translationLanguage === 'bn'
-        ? 'Word Breakdown'
-        : `Word Breakdown (${currentDisplayLanguage})`
-      : translationLanguage === 'mal' && thafheemWords?.length > 0
-        ? 'Word Breakdown (Malayalam)'
-        : 'Word Breakdown';
-
     const clipboard = buildWordByWordClipboard({
       surahName: surahInfo?.name || `Surah ${currentSurahId}`,
       surahArabic: surahInfo?.arabic || '',
@@ -251,7 +242,6 @@ const WordByWord = ({
           .map((word) => word.text_uthmani || word.text_simple)
           .join(' '),
       translation: wordData?.translations?.[0]?.text || '',
-      breakdownTitle,
       rows: getBreakdownRows({ wordData, thafheemWords, translationLanguage }),
       arabicFont: quranFont,
     });

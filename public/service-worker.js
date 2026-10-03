@@ -6,7 +6,10 @@
 
 const CACHE_NAME = 'thafheem-translations-v1';
 const API_CACHE_NAME = 'thafheem-api-v1';
-const STATIC_CACHE_NAME = 'thafheem-static-v1';
+// v2: v1 stored page HTML cache-first (see isStaticAsset); bumping the name
+// makes the activate handler delete it, so returning users stop getting a
+// stale index.html that points at assets from an older deploy.
+const STATIC_CACHE_NAME = 'thafheem-static-v2';
 
 // API endpoints to cache
 // NOTE: Now caching ALL /api/ requests automatically (see isAPIRequest function)
@@ -19,14 +22,6 @@ const API_ENDPOINTS = [
   // All other /api/ endpoints are now automatically cached
 ];
 
-// Static assets to cache
-const STATIC_ASSETS = [
-  '/',
-  '/manifest.json',
-  '/fonts/',
-  '/assets/',
-];
-
 // Cache duration (in milliseconds)
 const CACHE_DURATIONS = {
   translations: 12 * 60 * 60 * 1000, // 12 hours
@@ -35,24 +30,13 @@ const CACHE_DURATIONS = {
   static: 6 * 60 * 60 * 1000, // 6 hours
 };
 
-// Install event - cache static assets
+// Install event - take over right away. Nothing is precached: assets are
+// cached on first use. The old precache list held '/fonts/' and '/assets/',
+// which are directories (the server answers 403), so cache.addAll() always
+// rejected, skipWaiting() never ran, and every new worker sat in "waiting"
+// until the user closed all tabs.
 self.addEventListener('install', (event) => {
-  // Service Worker installing
-  
-  event.waitUntil(
-    caches.open(STATIC_CACHE_NAME)
-      .then((cache) => {
-        // Caching static assets
-        return cache.addAll(STATIC_ASSETS.filter(url => url !== '/'));
-      })
-      .then(() => {
-        // Static assets cached successfully
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('❌ Failed to cache static assets:', error);
-      })
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 // Activate event - clean up old caches
@@ -97,9 +81,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Page loads always go to the network so a new deploy shows up on the next
+  // visit; the cached copy is only an offline fallback. 'no-cache' makes the
+  // browser revalidate too: the HTML is served with only Last-Modified, so the
+  // HTTP cache would otherwise guess a lifetime and reuse an old page.
+  if (request.mode === 'navigate') {
+    event.respondWith(handleNetworkFirst(request, { cache: 'no-cache' }));
+    return;
+  }
+
   // Handle static assets with cache-first strategy
   if (isStaticAsset(url)) {
     event.respondWith(handleStaticRequest(request));
+    return;
+  }
+
+  // Other cross-origin requests (CDNs, analytics, Firebase) are not ours to cache.
+  if (url.origin !== self.location.origin) {
     return;
   }
 
@@ -118,9 +116,13 @@ function isAPIRequest(url) {
 
 /**
  * Check if request is for static asset
+ * Only same-origin files under /assets/ (content-hashed build output) and
+ * /fonts/. The old check was `pathname.includes()` against a list containing
+ * '/', which matched every URL — page HTML included.
  */
 function isStaticAsset(url) {
-  return STATIC_ASSETS.some(asset => url.pathname.includes(asset));
+  return url.origin === self.location.origin &&
+    (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/fonts/'));
 }
 
 /**
@@ -139,7 +141,7 @@ async function handleAPIRequest(request) {
       // Cache HIT
       
       // Update cache in background (stale-while-revalidate)
-      fetchAndCache(request, cache).catch(error => {
+      fetchAndCache(request, cache).catch(() => {
         // Background cache update failed
       });
       
@@ -201,16 +203,18 @@ async function handleStaticRequest(request) {
 
 /**
  * Handle other requests with network-first strategy
+ * @param {Request} request
+ * @param {RequestInit} [fetchOptions] passed to fetch(), e.g. { cache: 'no-cache' }
  */
-async function handleNetworkFirst(request) {
+async function handleNetworkFirst(request, fetchOptions) {
   // Don't cache index.html
   if (request.url.includes('/index.html') || request.url.endsWith('/')) {
-    return fetch(request);
+    return fetch(request, fetchOptions);
   }
-  
+
   try {
     // Try network first
-    const networkResponse = await fetch(request);
+    const networkResponse = await fetch(request, fetchOptions);
     
     // If successful, cache the response
     if (networkResponse.ok) {
@@ -220,7 +224,7 @@ async function handleNetworkFirst(request) {
     
     return networkResponse;
     
-  } catch (error) {
+  } catch {
     // Network failed, try cache
     const cache = await caches.open(STATIC_CACHE_NAME);
     const cachedResponse = await cache.match(request);
@@ -272,7 +276,7 @@ async function fetchAndCache(request, cache) {
       } else {
         // Skipping cache for unsupported scheme
       }
-    } catch (error) {
+    } catch {
       // Cache error (unsupported scheme)
     }
   }
