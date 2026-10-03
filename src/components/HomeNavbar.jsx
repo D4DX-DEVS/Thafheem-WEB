@@ -742,21 +742,6 @@ const HomepageNavbar = () => {
 
           {/* Right side */}
           <div className={`flex items-center gap-1.5 sm:gap-2 ${isUrdu ? "ml-1 sm:ml-4 flex-row-reverse" : "mr-1 sm:mr-4"}`}>
-            {/* Support Us - desktop only (same destination as the sidebar Donate Now button) */}
-            <a
-              href="https://app.thafheem.net/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group hidden md:flex items-center justify-center gap-2 px-4 min-h-[44px]
-                bg-gradient-to-r from-[#2596be] to-[#1e7a9a] hover:from-[#1e7a9a] hover:to-[#2596be]
-                text-white text-sm font-semibold whitespace-nowrap rounded-xl
-                shadow-md hover:shadow-lg hover:shadow-cyan-500/30
-                transition-all duration-300 ease-out hover:scale-105 active:scale-95"
-            >
-              <Heart size={16} className="transition-transform duration-300 group-hover:scale-110 group-hover:fill-current" />
-              <span>Support Us</span>
-            </a>
-
             {/* Language Button */}
             <button
               onClick={() => setIsLanguageOpen(true)}
@@ -844,6 +829,29 @@ const HomepageNavbar = () => {
             >
               <Search size={15} className="sm:w-[18px] sm:h-[18px] transition-all duration-300 group-hover:scale-110" />
             </button>
+
+            {/* Support Us - desktop only, left of Sign In, same style (same destination as the sidebar Donate Now button) */}
+            <a
+              href="https://app.thafheem.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative hidden md:flex items-center justify-center gap-2 px-5 py-2 text-sm
+                bg-white dark:bg-[#1C1C1E]
+                text-[#2596be] dark:text-[#62C3DC]
+                border border-[#2596be]/30 dark:border-[#62C3DC]/30
+                hover:bg-gradient-to-r hover:from-[#2596be] hover:to-[#1e7a9a]
+                hover:text-white hover:border-[#2596be]
+                rounded-xl transition-all duration-300 ease-out
+                font-medium whitespace-nowrap
+                shadow-sm hover:shadow-md hover:shadow-cyan-500/20
+                hover:scale-[1.02] active:scale-[0.98]
+                overflow-hidden min-h-[40px]
+                backdrop-blur-sm"
+            >
+              <Heart className="relative z-10 w-4 h-4 transition-transform duration-300 group-hover:scale-110 group-hover:fill-current" />
+              <span className="relative z-10 font-semibold text-base">Support Us</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#62C3DC] to-[#2596be] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+            </a>
 
             {/* Auth Button */}
             {user ? (
