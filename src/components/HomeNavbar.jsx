@@ -742,6 +742,21 @@ const HomepageNavbar = () => {
 
           {/* Right side */}
           <div className={`flex items-center gap-1.5 sm:gap-2 ${isUrdu ? "ml-1 sm:ml-4 flex-row-reverse" : "mr-1 sm:mr-4"}`}>
+            {/* Support Us - desktop only (same destination as the sidebar Donate Now button) */}
+            <a
+              href="https://app.thafheem.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group hidden md:flex items-center justify-center gap-2 px-4 min-h-[44px]
+                bg-gradient-to-r from-[#2596be] to-[#1e7a9a] hover:from-[#1e7a9a] hover:to-[#2596be]
+                text-white text-sm font-semibold whitespace-nowrap rounded-xl
+                shadow-md hover:shadow-lg hover:shadow-cyan-500/30
+                transition-all duration-300 ease-out hover:scale-105 active:scale-95"
+            >
+              <Heart size={16} className="transition-transform duration-300 group-hover:scale-110 group-hover:fill-current" />
+              <span>Support Us</span>
+            </a>
+
             {/* Language Button */}
             <button
               onClick={() => setIsLanguageOpen(true)}

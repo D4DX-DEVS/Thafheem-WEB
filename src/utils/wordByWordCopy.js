@@ -1,8 +1,11 @@
 // Helpers for the word-by-word popup: which words it shows, and the clipboard
-// payload for its copy button. The clipboard gets two flavours of the same
-// content: an HTML table that keeps the on-screen layout (meaning on the left,
-// Arabic on the right) for Docs/Word/email, and plain text for chat apps.
+// payload for its copy button. Both clipboard flavours read in the same order:
+// verse reference, the ayah, each word with its meaning, then the translation.
+// The clipboard gets an HTML table (Arabic word | meaning) for Docs/Word/email
+// and plain text for chat apps.
 
+const LTR_MARK = "\u200E";
+const RTL_MARK = "\u{200F}";
 const VERSE_NUMBER_TOKEN = /^[\s()٠-٩۰-۹﴾﴿0-9]+$/;
 
 export const NO_WORD_TRANSLATION = "Translation not available";
@@ -69,7 +72,7 @@ const escapeHtml = (value) =>
 /**
  * @param {{
  *   surahName: string, surahArabic: string, verseLabel: string,
- *   verseArabic: string, translation: string, breakdownTitle: string,
+ *   verseArabic: string, translation: string,
  *   rows: Array<{ arabic: string, simple: string, meaning: string, className: string }>,
  *   arabicFont: string,
  * }} content
@@ -81,25 +84,30 @@ export const buildWordByWordClipboard = ({
   verseLabel,
   verseArabic,
   translation,
-  breakdownTitle,
   rows,
   arabicFont,
 }) => {
   const heading = [surahName, verseLabel].filter(Boolean).join(" - ");
 
-  // Plain text: meaning first so the line stays left-to-right and the Arabic
-  // lands on the right, as in the popup.
+  // Plain text. Chat apps such as WhatsApp Web pick one direction for the whole
+  // message from its first strong character, so an English heading pushes every
+  // Arabic line to the left. A right-to-left mark at the start of each line keeps
+  // the surah name and ayah on the right. Each word is two lines (Arabic, then its
+  // meaning) so no line mixes scripts; the meaning is wrapped in left-to-right
+  // marks so its punctuation stays in place.
   const textParts = [[heading, surahArabic].filter(Boolean).join("\n")];
   if (verseArabic) textParts.push(verseArabic);
+  const rowLines = rows.flatMap((row) => {
+    const meaning = row.className ? `${row.meaning} (${row.className})` : row.meaning;
+    return [row.arabic, meaning && LTR_MARK + meaning + LTR_MARK].filter(Boolean);
+  });
+  textParts.push(rowLines.length > 0 ? rowLines.join("\n") : NO_WORD_BREAKDOWN);
   if (translation) textParts.push(`Translation:\n${translation}`);
-  const rowLines = rows.map((row) =>
-    [row.className ? `${row.meaning} (${row.className})` : row.meaning, row.arabic]
-      .filter(Boolean)
-      .join("  —  ")
-  );
-  const breakdownBody = rowLines.length > 0 ? rowLines.join("\n") : NO_WORD_BREAKDOWN;
-  textParts.push(breakdownTitle ? `${breakdownTitle}:\n${breakdownBody}` : breakdownBody);
-  const text = textParts.join("\n\n");
+  const text = textParts
+    .join("\n\n")
+    .split("\n")
+    .map((line) => (line ? RTL_MARK + line : line))
+    .join("\n");
 
   const arabicStyle = `font-family:'${escapeHtml(arabicFont)}','Scheherazade New','Amiri','Traditional Arabic',serif;`;
   const cell = "padding:10px 14px;border:1px solid #e5e7eb;vertical-align:middle;";
@@ -109,14 +117,14 @@ export const buildWordByWordClipboard = ({
     .map(
       (row) =>
         `<tr>` +
-        `<td dir="auto" style="${cell}text-align:left;width:60%;font-size:15px;">${escapeHtml(row.meaning)}` +
-        (row.className
-          ? `<div style="font-size:11px;color:#6b7280;text-transform:uppercase;">${escapeHtml(row.className)}</div>`
-          : "") +
-        `</td>` +
-        `<td dir="rtl" style="${cell}text-align:right;${arabicStyle}font-size:24px;">${escapeHtml(row.arabic)}` +
+        `<td dir="rtl" style="${cell}text-align:right;width:40%;${arabicStyle}font-size:24px;">${escapeHtml(row.arabic)}` +
         (row.simple
           ? `<div style="font-size:13px;color:#6b7280;">${escapeHtml(row.simple)}</div>`
+          : "") +
+        `</td>` +
+        `<td dir="auto" style="${cell}text-align:left;font-size:15px;">${escapeHtml(row.meaning)}` +
+        (row.className
+          ? `<div style="font-size:11px;color:#6b7280;text-transform:uppercase;">${escapeHtml(row.className)}</div>`
           : "") +
         `</td>` +
         `</tr>`
@@ -132,17 +140,14 @@ export const buildWordByWordClipboard = ({
   if (verseArabic) {
     htmlParts.push(`<p dir="rtl" style="margin:0 0 16px;text-align:right;${arabicStyle}font-size:28px;line-height:2;">${escapeHtml(verseArabic)}</p>`);
   }
-  if (translation) {
-    htmlParts.push(`<p style="${labelStyle}">Translation</p><p dir="auto" style="margin:0 0 16px;">${escapeHtml(translation)}</p>`);
-  }
-  if (breakdownTitle) {
-    htmlParts.push(`<p style="${labelStyle}">${escapeHtml(breakdownTitle)}</p>`);
-  }
   htmlParts.push(
     htmlRows
       ? `<table dir="ltr" style="border-collapse:collapse;width:100%;">${htmlRows}</table>`
       : `<p style="font-style:italic;color:#6b7280;">${escapeHtml(NO_WORD_BREAKDOWN)}</p>`
   );
+  if (translation) {
+    htmlParts.push(`<p style="${labelStyle}">Translation</p><p dir="auto" style="margin:0 0 16px;">${escapeHtml(translation)}</p>`);
+  }
   const html = `<div dir="ltr">${htmlParts.join("")}</div>`;
 
   return { text, html };
