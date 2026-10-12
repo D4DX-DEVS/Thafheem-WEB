@@ -76,13 +76,19 @@ const BlockWiseSurahInfoModal = ({ surahId, onClose }) => {
     []
   );
 
-  // Convert plain text verse references into clickable links
+  // Convert plain text note markers and verse references into clickable links
+  // N1342 / H74 / B5 → note popup
   // (47:8) with brackets → surah 47 interpretation 8
   // 47:8 without brackets → surah 47 ayah 8
   const linkifyVerseRefs = (html) => {
     if (!html) return html;
-    // First: (surah:interpretation) with brackets
+    // Note markers (skip tag internals and existing <sup>)
     let result = html.replace(
+      /(?<![A-Za-z0-9])([NHB]\d+)(?![^<]*>)(?![^<]*<\/sup>)/g,
+      '<sup class="f-noteno">$1</sup>'
+    );
+    // First: (surah:interpretation) with brackets
+    result = result.replace(
       /\((\d{1,3}):(\d{1,3})\)/g,
       '<a class="crs" data-type="interpretation" data-surah="$1" data-ipt="$2">($1:$2)</a>'
     );
