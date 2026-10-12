@@ -740,36 +740,6 @@ const Reading = () => {
     }
   }, [currentAyah, isPlaying]);
 
-  // Handle hash-based navigation (from ayah-wise page)
-  useEffect(() => {
-    if (!loading && verses.length > 0) {
-      const hash = window.location.hash;
-      if (hash) {
-        const match = hash.match(/#ayah-(\d+)/);
-        if (match) {
-          const ayahNumber = parseInt(match[1], 10);
-
-          // Retry up to 5 times with increasing delays to ensure verses are rendered
-          const attemptScroll = (attempt = 1) => {
-            const ayahElement = document.getElementById(`ayah-${ayahNumber}`);
-            if (ayahElement) {
-              ayahElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              // Highlight the ayah briefly
-              ayahElement.style.backgroundColor = "#fef3c7";
-              setTimeout(() => {
-                ayahElement.style.backgroundColor = "";
-              }, 1000);
-            } else if (attempt < 5) {
-              setTimeout(() => attemptScroll(attempt + 1), attempt * 200);
-            }
-          };
-
-          setTimeout(() => attemptScroll(), 100);
-        }
-      }
-    }
-  }, [loading, verses.length]);
-
   // Listen for toast events from Transition component
   useEffect(() => {
     const handleToastEvent = (event) => {
@@ -1251,6 +1221,46 @@ const Reading = () => {
     setTimeout(() => window.dispatchEvent(new Event('scroll')), 60);
   }, [versesGroupedByPage, loadingMore]);
 
+  // Hash-based navigation (from ayah-wise page, e.g. /reading/6#ayah-12):
+  // open the Mushaf page containing the ayah, then scroll to + highlight it.
+  const [highlightAyah, setHighlightAyah] = useState(null);
+  const handledHashRef = useRef(null);
+  useEffect(() => {
+    const match = location.hash.match(/^#ayah-(\d+)$/);
+    if (!match || loading || versesGroupedByPage.length === 0) return;
+    if (handledHashRef.current === `${surahId}${location.hash}`) return;
+    const ayahNumber = parseInt(match[1], 10);
+
+    const groupIndex = versesGroupedByPage.findIndex(
+      (g) => ayahNumber >= g.startVerse && ayahNumber <= g.endVerse
+    );
+    if (groupIndex === -1) {
+      // Ayah not loaded yet — fetch next batch; effect re-runs when it arrives
+      if (hasNextRef.current && !loadingMore) loadNextBatch();
+      return;
+    }
+
+    handledHashRef.current = `${surahId}${location.hash}`;
+    pendingPageJumpRef.current = null;
+    setCurrentPageIndex(groupIndex);
+    setHighlightAyah(ayahNumber);
+    setTimeout(() => window.dispatchEvent(new Event('scroll')), 60);
+
+    // Wait for the page's glyphs to render, then scroll the ayah into view
+    const attemptScroll = (attempt = 1) => {
+      const el = document.querySelector(`[data-ayah="${ayahNumber}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (attempt < 10) {
+        setTimeout(() => attemptScroll(attempt + 1), 150);
+      }
+    };
+    setTimeout(attemptScroll, 100);
+    const clearTimer = setTimeout(() => setHighlightAyah(null), 4000);
+    return () => clearTimeout(clearTimer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.hash, surahId, loading, versesGroupedByPage, loadingMore]);
+
   const accessibleSurahName =
     surahInfo?.arabic || (surahId ? `Surah ${surahId}` : "Surah");
   const calligraphicSurahName = getCalligraphicSurahName(
@@ -1391,6 +1401,7 @@ const Reading = () => {
                       tajweed={tajweedEnabled}
                       dark={theme === 'dark'}
                       currentAyah={currentAyah}
+                      highlightAyah={highlightAyah}
                       onAyahClick={handleAyahClick}
                     />
                   </div>
