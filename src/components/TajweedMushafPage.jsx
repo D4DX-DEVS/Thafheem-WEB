@@ -36,6 +36,7 @@ const TajweedMushafPage = React.memo(function TajweedMushafPage({
   tajweed = true,
   dark = false,
   currentAyah = null,
+  highlightAyah = null,
   onAyahClick,
 }) {
   const [lines, setLines] = useState(null);
@@ -46,6 +47,8 @@ const TajweedMushafPage = React.memo(function TajweedMushafPage({
   // (genuinely short lines, e.g. a surah's final line).
   const pageRef = useRef(null);
   const [layout, setLayout] = useState({ width: null, justify: [] });
+  // Per-line highlight bar geometry: { [lineIdx]: { left, width } } (px)
+  const [hlRects, setHlRects] = useState({});
 
   useEffect(() => {
     if (!suraid || !from || !to) return;
@@ -110,19 +113,41 @@ const TajweedMushafPage = React.memo(function TajweedMushafPage({
             lineHeight: 1.95,
             opacity: fontsReady ? 1 : 0,
             transition: 'opacity 0.15s ease-in',
+            // Own stacking context so the highlight bar (z -1) sits behind the
+            // glyphs but above the page background.
+            position: 'relative',
+            isolation: 'isolate',
           }}
         >
+          {hlRects[lineIdx] && (
+            <span
+              data-hl-bar
+              aria-hidden="true"
+              className="rounded-md bg-cyan-600/15 dark:bg-cyan-400/25"
+              style={{
+                position: 'absolute',
+                zIndex: -1,
+                top: '6%',
+                bottom: '6%',
+                left: `${hlRects[lineIdx].left}px`,
+                width: `${hlRects[lineIdx].width}px`,
+                pointerEvents: 'none',
+              }}
+            />
+          )}
           {line.words.map((w, i) => {
             const isEnd = w.char_type === 'end';
             const isActive = currentAyah != null && w.ayah_id === currentAyah;
+            const isHighlighted = highlightAyah != null && w.ayah_id === highlightAyah;
             const handleClick = onAyahClick ? () => onAyahClick(w.ayah_id) : undefined;
             // End circle keeps native colors; words get the computed palette.
             const palette = isEnd ? undefined : wordPalette;
             return (
               <span
                 key={`${w.ayah_id}-${w.word_pos}-${i}`}
+                data-ayah={w.ayah_id}
                 onClick={handleClick}
-                className={isActive ? 'rounded bg-blue-100 dark:bg-blue-900' : ''}
+                className={isActive && !isHighlighted ? 'rounded bg-blue-100 dark:bg-blue-900' : ''}
                 style={{
                   fontFamily: `'${tajweedFontFamily(w.v2_page)}'`,
                   fontSize: `${fontSize}px`,
@@ -140,7 +165,34 @@ const TajweedMushafPage = React.memo(function TajweedMushafPage({
         </div>
       );
     });
-  }, [lines, fontsReady, fontSize, tajweed, dark, currentAyah, onAyahClick, layout.justify]);
+  }, [lines, fontsReady, fontSize, tajweed, dark, currentAyah, highlightAyah, hlRects, onAyahClick, layout.justify]);
+
+  // Highlighted ayah is drawn as ONE continuous bar per line (spanning the
+  // first..last highlighted word) rather than per-word backgrounds, which
+  // would leave gaps between justified words.
+  useLayoutEffect(() => {
+    const pageEl = pageRef.current;
+    if (!pageEl || highlightAyah == null || !fontsReady) {
+      setHlRects((prev) => (Object.keys(prev).length ? {} : prev));
+      return;
+    }
+    const next = {};
+    pageEl.querySelectorAll('.tajweed-mushaf-line').forEach((lineEl, idx) => {
+      const spans = lineEl.querySelectorAll(`[data-ayah="${highlightAyah}"]`);
+      if (!spans.length) return;
+      const lineRect = lineEl.getBoundingClientRect();
+      let left = Infinity;
+      let right = -Infinity;
+      spans.forEach((s) => {
+        const r = s.getBoundingClientRect();
+        left = Math.min(left, r.left);
+        right = Math.max(right, r.right);
+      });
+      const pad = 4;
+      next[idx] = { left: left - lineRect.left - pad, width: right - left + pad * 2 };
+    });
+    setHlRects(next);
+  }, [highlightAyah, fontsReady, lines, fontSize, layout]);
 
   // Mushaf pages 1 & 2 (Al-Fatiha + the start of Al-Baqarah) are the ONLY
   // non-justified pages in the Madani Mushaf: their QCF glyphs are designed
@@ -165,7 +217,7 @@ const TajweedMushafPage = React.memo(function TajweedMushafPage({
     lineEls.forEach((el, idx) => {
       let w = 0;
       el.childNodes.forEach((c) => {
-        if (c.getBoundingClientRect) w += c.getBoundingClientRect().width;
+        if (c.getBoundingClientRect && !(c.dataset && 'hlBar' in c.dataset)) w += c.getBoundingClientRect().width;
       });
       widths.push(w);
       const firstWord = lines[idx]?.words?.[0];
